@@ -54,7 +54,7 @@ export const articles = pgTable(
     title: varchar({ length: 200 }).notNull(),
     body: text().notNull(),
     status: articleStatus().notNull().default("draft"),
-    priceMinor: integer().notNull(),
+    price: integer().notNull(),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp({ withTimezone: true })
       .notNull()
@@ -63,7 +63,7 @@ export const articles = pgTable(
     publishedAt: timestamp({ withTimezone: true }),
   },
   (t) => [
-    check("price_non_negative", sql`${t.priceMinor} >= 0`),
+    check("price_non_negative", sql`${t.price} >= 0`),
     check(
       "published_requires_date",
       sql`${t.status} <> 'published' OR ${t.publishedAt} IS NOT NULL`,
