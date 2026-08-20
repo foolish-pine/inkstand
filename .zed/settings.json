@@ -1,0 +1,21 @@
+{
+  "format_on_save": "on",
+  "languages": {
+    "JavaScript": {
+      "formatter": "prettier",
+      "code_actions_on_format": { "source.fixAll.eslint": true }
+    },
+    "JSX": {
+      "formatter": "prettier",
+      "code_actions_on_format": { "source.fixAll.eslint": true }
+    },
+    "TypeScript": {
+      "formatter": "prettier",
+      "code_actions_on_format": { "source.fixAll.eslint": true }
+    },
+    "TSX": {
+      "formatter": "prettier",
+      "code_actions_on_format": { "source.fixAll.eslint": true }
+    }
+  }
+}

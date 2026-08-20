@@ -1,0 +1,13 @@
+# 日本語の README / CLAUDE.md は表の区切りを表示幅でそろえてあるため整形しない
+*.md
+
+# 生成物・依存
+.next/
+out/
+build/
+node_modules/
+next-env.d.ts
+package-lock.json
+
+# Drizzle のマイグレーション出力
+drizzle/
