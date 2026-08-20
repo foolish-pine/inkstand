@@ -6,7 +6,12 @@ import prettier from "eslint-config-prettier/flat";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
-  // 整形系ルールを無効化する。Prettier と競合させないため必ず最後に置く。
+  {
+    rules: {
+      "import/first": "error",
+      "import/order": ["error", { alphabetize: { order: "asc" } }],
+    },
+  },
   prettier,
   // Override default ignores of eslint-config-next.
   globalIgnores([
