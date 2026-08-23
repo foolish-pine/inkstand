@@ -2,7 +2,7 @@
 
 import { eq, sql } from "drizzle-orm";
 import { redirect } from "next/navigation";
-import { PostgresError } from "postgres";
+import postgres from "postgres";
 import z from "zod";
 import { signUpSchema } from "./auth/sign-up-schema";
 import { db } from "@/db";
@@ -89,7 +89,7 @@ export async function signUp(
     });
   } catch (e) {
     if (
-      e instanceof PostgresError &&
+      e instanceof postgres.PostgresError &&
       e.code === "23505" &&
       e.constraint_name === "profiles_username_lower_idx"
     ) {
