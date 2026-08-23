@@ -1,21 +1,38 @@
 {
   "format_on_save": "on",
+  "lsp": {
+    "stylelint-lsp": {
+      "settings": {
+        "stylelint": {
+          "validate": ["css", "postcss"]
+        }
+      }
+    }
+  },
   "languages": {
     "JavaScript": {
       "formatter": "prettier",
-      "code_actions_on_format": { "source.fixAll.eslint": true }
-    },
-    "JSX": {
-      "formatter": "prettier",
-      "code_actions_on_format": { "source.fixAll.eslint": true }
+      "code_actions_on_format": {
+        "source.fixAll.eslint": true
+      }
     },
     "TypeScript": {
       "formatter": "prettier",
-      "code_actions_on_format": { "source.fixAll.eslint": true }
+      "code_actions_on_format": {
+        "source.fixAll.eslint": true
+      }
     },
     "TSX": {
       "formatter": "prettier",
-      "code_actions_on_format": { "source.fixAll.eslint": true }
+      "code_actions_on_format": {
+        "source.fixAll.eslint": true
+      }
+    },
+    "CSS": {
+      "formatter": "prettier",
+      "code_actions_on_format": {
+        "source.fixAll.stylelint": true
+      }
     }
   }
 }
