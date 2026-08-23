@@ -1,8 +1,12 @@
 "use server";
 
+import { eq, sql } from "drizzle-orm";
 import { redirect } from "next/navigation";
+import { PostgresError } from "postgres";
 import z from "zod";
 import { signUpSchema } from "./auth/sign-up-schema";
+import { db } from "@/db";
+import { profiles } from "@/db/schema";
 import { createClient } from "@/lib/supabase/server";
 
 export type SignUpFormState = {
@@ -14,10 +18,20 @@ export type SignUpFormState = {
   fieldErrors: { email?: string[]; password?: string[]; username?: string[] };
 };
 
+function getString(formData: FormData, name: string): string {
+  const value = formData.get(name);
+  return typeof value === "string" ? value : "";
+}
+
 export async function signUp(
   prevState: SignUpFormState,
   formData: FormData,
 ): Promise<SignUpFormState> {
+  const defaultValues = {
+    email: getString(formData, "email"),
+    username: getString(formData, "username"),
+  };
+
   const validated = signUpSchema.safeParse({
     email: formData.get("email"),
     password: formData.get("password"),
@@ -26,30 +40,74 @@ export async function signUp(
 
   if (!validated.success)
     return {
-      defaultValues: {
-        email: formData.get("email")?.toString() || "",
-        username: formData.get("username")?.toString() || "",
-      },
+      defaultValues,
       ...z.flattenError(validated.error),
     };
 
   const { email, password, username } = validated.data;
 
+  const [existingProfile] = await db
+    .select({
+      id: profiles.id,
+    })
+    .from(profiles)
+    .where(
+      eq(
+        sql<string>`lower(${profiles.username})`,
+        sql<string>`lower(${username})`,
+      ),
+    )
+    .limit(1);
+
+  if (existingProfile)
+    return {
+      defaultValues,
+      formErrors: [],
+      fieldErrors: {
+        username: ["このユーザー名は登録済みです。"],
+      },
+    };
+
   const supabase = await createClient();
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
   });
 
-  if (error)
+  if (!data.user || error)
     return {
-      defaultValues: {
-        email,
-        username,
-      },
+      defaultValues,
       formErrors: ["ユーザー登録に失敗しました。もう一度お試しください。"],
       fieldErrors: {},
     };
+
+  try {
+    await db.insert(profiles).values({
+      id: data.user.id,
+      username,
+      displayName: username,
+    });
+  } catch (e) {
+    if (
+      e instanceof PostgresError &&
+      e.code === "23505" &&
+      e.constraint_name === "profiles_username_lower_idx"
+    ) {
+      return {
+        defaultValues,
+        formErrors: [],
+        fieldErrors: {
+          username: ["このユーザー名は登録済みです。"],
+        },
+      };
+    }
+
+    return {
+      defaultValues,
+      formErrors: ["ユーザー登録に失敗しました。もう一度お試しください。"],
+      fieldErrors: {},
+    };
+  }
 
   redirect("/");
 }
