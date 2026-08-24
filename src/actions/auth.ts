@@ -110,7 +110,7 @@ export async function signUp(
     };
   }
 
-  redirect("/");
+  redirect("/dashboard");
 }
 
 export type SignInFormState = {
@@ -157,5 +157,14 @@ export async function signIn(
       fieldErrors: {},
     };
 
-  redirect("/");
+  redirect("/dashboard");
+}
+
+export async function signOut() {
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signOut();
+
+  if (error) throw error;
+
+  redirect("/login");
 }
