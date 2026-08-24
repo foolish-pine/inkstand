@@ -1,20 +1,19 @@
 "use client";
 
 import { useActionState } from "react";
-import { signUp, type SignUpFormState } from "@/actions/auth";
+import { signIn, type SignInFormState } from "@/actions/auth";
 import { TextField } from "@/components/text-field";
 
-const initialState: SignUpFormState = {
+const initialState: SignInFormState = {
   defaultValues: {
     email: "",
-    username: "",
   },
   formErrors: [],
   fieldErrors: {},
 };
 
-export default function SignUp() {
-  const [state, formAction, isPending] = useActionState(signUp, initialState);
+export default function Login() {
+  const [state, formAction, isPending] = useActionState(signIn, initialState);
 
   return (
     <main className="flex flex-1 items-center justify-center px-6 py-16">
@@ -25,12 +24,7 @@ export default function SignUp() {
             inkstand
           </span>
         </div>
-        <h1 className="font-display mt-12 text-3xl tracking-wide">
-          アカウントを作成
-        </h1>
-        <p className="text-muted mt-3 text-sm leading-relaxed">
-          書いた記事に価格をつけて公開できます。
-        </p>
+        <h1 className="font-display mt-12 text-3xl tracking-wide">ログイン</h1>
         {state.formErrors.length > 0 && (
           <p
             role="alert"
@@ -52,25 +46,15 @@ export default function SignUp() {
             label="パスワード"
             name="password"
             type="password"
-            autoComplete="new-password"
-            hint="12文字以上で入力してください。"
+            autoComplete="current-password"
             errors={state.fieldErrors.password}
-          />
-          <TextField
-            label="ユーザー名"
-            name="username"
-            type="text"
-            autoComplete="username"
-            hint="プロフィールのURLに使われます。"
-            defaultValue={state.defaultValues.username}
-            errors={state.fieldErrors.username}
           />
           <button
             type="submit"
             disabled={isPending}
             className="bg-foreground text-background focus-visible:outline-accent mt-4 w-full cursor-pointer py-3 text-sm tracking-wider transition-opacity hover:opacity-85 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {isPending ? "作成しています…" : "アカウントを作成"}
+            {isPending ? "ログインしています…" : "ログイン"}
           </button>
         </form>
       </div>
