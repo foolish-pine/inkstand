@@ -1,8 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 import { signUp, type SignUpFormState } from "@/actions/auth";
 import { TextField } from "@/components/text-field";
+import { Wordmark } from "@/components/wordmark";
 
 const initialState: SignUpFormState = {
   defaultValues: {
@@ -19,12 +21,7 @@ export default function SignUp() {
   return (
     <main className="flex flex-1 items-center justify-center px-6 py-16">
       <div className="w-full max-w-sm">
-        <div className="flex items-center gap-2.5">
-          <span aria-hidden className="bg-seal size-2" />
-          <span className="font-display text-lg tracking-[0.3em]">
-            inkstand
-          </span>
-        </div>
+        <Wordmark />
         <h1 className="font-display mt-12 text-3xl tracking-wide">
           アカウントを作成
         </h1>
@@ -73,6 +70,15 @@ export default function SignUp() {
             {isPending ? "作成しています…" : "アカウントを作成"}
           </button>
         </form>
+        <p className="text-muted mt-10 text-xs">
+          すでにアカウントをお持ちの方は
+          <Link
+            href="/login"
+            className="text-foreground focus-visible:outline-accent ml-1 underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2"
+          >
+            ログイン
+          </Link>
+        </p>
       </div>
     </main>
   );
