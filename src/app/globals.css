@@ -1,6 +1,12 @@
 @import "tailwindcss";
 
+/* ライトを既定とし、ダークは 2 箇所で定義する。
+   1. OS がダークで、かつ利用者がライトを選んでいないとき
+   2. 利用者が明示的にダークを選んだとき
+   data-theme が付いていない状態が「システムに追従」を表す。 */
 :root {
+  color-scheme: light;
+
   --background: #f5f5f1;
   --foreground: #12182b;
   --surface: #fbfbf8;
@@ -11,7 +17,9 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
     --background: #0e1220;
     --foreground: #e8eaf0;
     --surface: #151a2b;
@@ -20,6 +28,18 @@
     --accent: #8fa9e0;
     --seal: #e0705c;
   }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --background: #0e1220;
+  --foreground: #e8eaf0;
+  --surface: #151a2b;
+  --muted: #9aa3b8;
+  --rule: #2a3145;
+  --accent: #8fa9e0;
+  --seal: #e0705c;
 }
 
 @theme inline {
