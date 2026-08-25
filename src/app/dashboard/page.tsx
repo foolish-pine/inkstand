@@ -1,4 +1,5 @@
 import { desc, eq } from "drizzle-orm";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { signOut } from "@/actions/auth";
 import { Wordmark } from "@/components/wordmark";
@@ -45,9 +46,15 @@ export default async function Dashboard() {
       <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-16">
         <h1 className="font-display text-3xl tracking-wide">ダッシュボード</h1>
         <p className="text-muted mt-3 text-sm">{user.email}でログイン中</p>
-        <h2 className="font-display mt-16 text-xl tracking-wide">
-          あなたの記事
-        </h2>
+        <div className="mt-16 flex items-baseline justify-between gap-6">
+          <h2 className="font-display text-xl tracking-wide">あなたの記事</h2>
+          <Link
+            href="/dashboard/articles/new"
+            className="border-foreground hover:bg-foreground hover:text-background focus-visible:outline-accent shrink-0 border px-4 py-2 text-xs tracking-wider transition-colors focus-visible:outline-2 focus-visible:outline-offset-2"
+          >
+            記事を書く
+          </Link>
+        </div>
         {myArticles.length > 0 ? (
           <ul className="border-rule mt-6 border-t">
             {myArticles.map((article) => (
