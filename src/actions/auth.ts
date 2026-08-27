@@ -6,6 +6,7 @@ import postgres from "postgres";
 import z from "zod";
 import { signInSchema } from "./auth/sign-in-schema";
 import { signUpSchema } from "./auth/sign-up-schema";
+import { getString } from "./form-data";
 import { db } from "@/db";
 import { profiles } from "@/db/schema";
 import { createClient } from "@/lib/supabase/server";
@@ -18,11 +19,6 @@ export type SignUpFormState = {
   formErrors: string[];
   fieldErrors: { email?: string[]; password?: string[]; username?: string[] };
 };
-
-function getString(formData: FormData, name: string): string {
-  const value = formData.get(name);
-  return typeof value === "string" ? value : "";
-}
 
 export async function signUp(
   prevState: SignUpFormState,
