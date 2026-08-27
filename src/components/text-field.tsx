@@ -1,4 +1,5 @@
 import {
+  type HTMLAttributes,
   type HTMLInputTypeAttribute,
   type HTMLInputAutoCompleteAttribute,
 } from "react";
@@ -7,6 +8,7 @@ export function TextField({
   label,
   name,
   type,
+  inputMode,
   autoComplete,
   defaultValue,
   hint,
@@ -15,6 +17,7 @@ export function TextField({
   label: string;
   name: string;
   type: HTMLInputTypeAttribute;
+  inputMode?: HTMLAttributes<HTMLElement>["inputMode"];
   autoComplete?: HTMLInputAutoCompleteAttribute;
   defaultValue?: string;
   hint?: string;
@@ -32,6 +35,7 @@ export function TextField({
         id={name}
         name={name}
         type={type}
+        inputMode={inputMode}
         autoComplete={autoComplete}
         defaultValue={defaultValue}
         aria-invalid={errors && errors.length > 0 ? true : undefined}
