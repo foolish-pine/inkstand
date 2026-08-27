@@ -4,7 +4,7 @@ import { db } from "@/db";
 import { profiles } from "@/db/schema";
 import { createClient } from "@/lib/supabase/server";
 
-export default async function DashboardLayout({
+export default async function RequiresProfileLayout({
   children,
 }: LayoutProps<"/dashboard">) {
   const supabase = await createClient();
