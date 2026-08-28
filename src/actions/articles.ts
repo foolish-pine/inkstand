@@ -6,7 +6,7 @@ import { createArticleSchema } from "./articles/create-article-schema";
 import { getString } from "./form-data";
 import { db } from "@/db";
 import { articles } from "@/db/schema";
-import { createClient } from "@/lib/supabase/server";
+import { requireUser } from "@/lib/current-user";
 
 export type CreateArticleFormState = {
   defaultValues: {
@@ -28,13 +28,7 @@ export async function createArticle(
   prevState: CreateArticleFormState,
   formData: FormData,
 ): Promise<CreateArticleFormState> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
-
-  if (error || !user) redirect("/login");
+  const user = await requireUser();
 
   const defaultValues = {
     title: getString(formData, "title"),

@@ -1,18 +1,11 @@
 import { desc, eq } from "drizzle-orm";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { articles } from "@/db/schema";
-import { createClient } from "@/lib/supabase/server";
+import { requireUser } from "@/lib/current-user";
 
 export default async function Dashboard() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
-
-  if (error || !user) redirect("/login");
+  const user = await requireUser();
 
   const myArticles = await db
     .select({

@@ -1,18 +1,11 @@
-import { redirect } from "next/navigation";
 import { signOut } from "@/actions/auth";
 import { Wordmark } from "@/components/wordmark";
-import { createClient } from "@/lib/supabase/server";
+import { requireUser } from "@/lib/current-user";
 
 export default async function DashboardLayout({
   children,
 }: LayoutProps<"/dashboard">) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
-
-  if (error || !user) redirect("/login");
+  await requireUser();
 
   return (
     <>

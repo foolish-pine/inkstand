@@ -1,16 +1,9 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { ArticleForm } from "./article-form";
-import { createClient } from "@/lib/supabase/server";
+import { requireUser } from "@/lib/current-user";
 
 export default async function NewArticle() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
-
-  if (error || !user) redirect("/login");
+  await requireUser();
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-16">
