@@ -469,33 +469,42 @@ drizzle/            # マイグレーション出力
 
 ### 現在地
 
-**ステップ3 のサブステップ3（記事作成の Server Action）まで完了。**
+**ステップ3 のサブステップ4（一覧への反映）まで完了。保留課題だった `getUser()` の重複排除も完了。**
 
 | # | 内容 | 状態 |
 | --- | --- | --- |
 | 1 | ダッシュボードに自分の記事一覧を出す | 完了 |
 | 2 | 記事の新規作成フォーム（画面） | 完了 |
 | 3 | 作成の Server Action（zod 検証 ＋ 認可） | 完了 |
-| 4 | 一覧への反映（`revalidatePath`） | **次にやる** |
-| 5 | 編集フォームと更新 Action（**所有権の確認**） | 未着手 |
+| 4 | 一覧への反映（`revalidatePath`） | 完了（下記の結論により何も追加しない） |
+| 5 | 編集フォームと更新 Action（**所有権の確認**） | **次にやる** |
 | 6 | 削除 Action（**所有権の確認**） | 未着手 |
 | 7 | バリデーションと認可判定の単体テスト（Vitest） | 未着手 |
 
 ステップ3 の本題は 5・6・7。「他人の記事 ID を直接指定されたら」を毎回問う。
 
+サブステップ4 で確かめた結論（ステップ4 で必要になる）:
+
+- ルートを動的にするのは Dynamic API（`cookies()` / `headers()` / `searchParams` など）であって、DB アクセスではない。`db.select()` は Next.js から見えない
+- `/dashboard` が毎回サーバー実行されるのは `createClient()` が `cookies()` を読むから。`npm run build` のルート一覧で `ƒ` と表示される
+- Dynamic API を使わないページで Drizzle のクエリを書くと、結果がビルド時に静的 HTML へ焼き付く（`/cache-test` で実測。`.next/server/app/cache-test.html` に件数が literal で埋まっていた）
+- そのため現時点の `createArticle` に `revalidatePath("/dashboard")` を書いても消す対象が無い（Data Cache も Full Route Cache もエントリ無し、Router Cache は動的セグメントの staleTime が 0）。**キャッシュを入れるステップ4 で改めて置き場所を考える**
+
 ### 保留している課題
 
 着手すると決めた順。
 
-1. **`getUser()` のキャッシュ**（次にやると学習者が明言）。ダッシュボードを 1 回表示すると `dashboard/layout.tsx` → `(requires-profile)/layout.tsx` → `page.tsx` で 3 回走る。layout から children へデータは渡せない（Next.js の仕様）ので、React の `cache()` で重複を排除する。`src/lib/supabase/` あたりに `getCurrentUser()` / `getCurrentProfile()` を置く案
-2. **プロフィール設定画面の実装**。`/dashboard/profile/new` は仮置き。`username` の検証規則を `sign-up-schema.ts` と共有する必要がある（規則がずれると「サインアップでは取れないが設定画面では取れる名前」が生まれる）
-3. **ログイン画面への復帰導線**。`?next=` で元の場所へ戻す（**オープンリダイレクトの検証が必須**）、セッション切れの理由表示
-4. **書きかけの記事を失わない仕組み**。セッション切れやエラーで本文が消える
+1. **プロフィール設定画面の実装**。`/dashboard/profile/new` は仮置き。`username` の検証規則を `sign-up-schema.ts` と共有する必要がある（規則がずれると「サインアップでは取れないが設定画面では取れる名前」が生まれる）
+2. **ログイン画面への復帰導線**。`?next=` で元の場所へ戻す（**オープンリダイレクトの検証が必須**）、セッション切れの理由表示
+3. **書きかけの記事を失わない仕組み**。セッション切れやエラーで本文が消える
 
 ### 決まっている方針
 
 - ステップ4 の開始時に `cacheComponents: true` を有効にする（詳細はステップ4 の節）
 - 確認メールは無効化済み（詳細は「外部サービスの準備」の節）
+- **認可は layout に置かない。** Next.js の layout はクライアント側の画面遷移で再レンダリングされないため、layout だけのチェックは「一度通れば以降は確認されない」状態になる。各ページ・各 Server Action の入口に `requireUser()` を置く。重複するコストは `src/lib/current-user.ts` の React `cache()` が吸収する（1 リクエスト＝ `getUser()` 1 回）
+- **`cache()`（React）と `use cache`（Next.js）は別物。** 前者はリクエスト内の重複排除でリクエストをまたがない。モジュールのトップレベル変数でキャッシュすると Node.js のプロセス全体で共有され、別ユーザーに漏れる
+- **DAL はステップ4 の頭で作る。** 現時点で複数箇所から呼ばれるのは `requireUser()` だけなので `src/lib/current-user.ts` に置いている。ステップ4 で記事クエリ・閲覧可否判定・購入済み判定が増えた時点で `src/lib/dal/` に集約する。DAL は「そこを通らないとデータに触れない」ことで初めて意味を持つので、`@/db` を DAL 以外から import 禁止にする ESLint ルール（`no-restricted-imports`）とセットで導入する
 
 ## Claude への禁止事項
 
