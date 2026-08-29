@@ -53,8 +53,7 @@ export async function signUp(
         sql<string>`lower(${profiles.username})`,
         sql<string>`lower(${username})`,
       ),
-    )
-    .limit(1);
+    );
 
   if (existingProfile)
     return {

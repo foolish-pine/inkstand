@@ -14,8 +14,7 @@ export default async function RequiresProfileLayout({
       id: profiles.id,
     })
     .from(profiles)
-    .where(eq(profiles.id, user.id))
-    .limit(1);
+    .where(eq(profiles.id, user.id));
 
   if (!existingProfile) redirect("/dashboard/profile/new");
 
