@@ -97,6 +97,21 @@ export async function updateArticle(
         publishedAt: sql`COALESCE(${articles.publishedAt}, NOW())`,
       }),
     })
+    .where(and(eq(articles.authorId, user.id), eq(articles.id, articleId)))
+    .returning({ id: articles.id });
+
+  if (!article) notFound();
+
+  redirect("/dashboard");
+}
+
+export async function deleteArticle(formData: FormData): Promise<void> {
+  const user = await requireUser();
+
+  const articleId = getString(formData, "articleId");
+
+  const [article] = await db
+    .delete(articles)
     .where(and(eq(articles.id, articleId), eq(articles.authorId, user.id)))
     .returning({ id: articles.id });
 

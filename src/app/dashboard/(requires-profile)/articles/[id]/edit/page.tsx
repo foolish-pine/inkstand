@@ -2,6 +2,7 @@ import { and, eq } from "drizzle-orm";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArticleForm } from "../../article-form";
+import { DeleteArticleButton } from "./delete-article-button";
 import { updateArticle } from "@/actions/articles";
 import { db } from "@/db";
 import { articles } from "@/db/schema";
@@ -46,6 +47,9 @@ export default async function EditArticle({
         action={updateArticle}
         articleId={article.id}
       />
+      <div className="border-rule mt-16 border-t pt-8">
+        <DeleteArticleButton articleId={article.id} title={article.title} />
+      </div>
     </main>
   );
 }
