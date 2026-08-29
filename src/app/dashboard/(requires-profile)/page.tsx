@@ -39,9 +39,12 @@ export default async function Dashboard() {
               key={article.id}
               className="border-rule flex items-baseline justify-between gap-6 border-b py-4"
             >
-              <span className="min-w-0 flex-1 truncate text-sm">
+              <Link
+                href={`/dashboard/articles/${article.id}/edit`}
+                className="hover:text-accent focus-visible:outline-accent min-w-0 flex-1 truncate text-sm underline-offset-4 transition-colors hover:underline focus-visible:outline-2 focus-visible:outline-offset-2"
+              >
                 {article.title}
-              </span>
+              </Link>
               <span className="text-muted shrink-0 text-xs tabular-nums">
                 {article.price === 0
                   ? "無料"
