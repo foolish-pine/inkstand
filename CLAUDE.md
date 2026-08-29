@@ -481,15 +481,15 @@ drizzle/            # マイグレーション出力
 
 ### 現在地
 
-**ステップ4 のサブステップ2（`cacheComponents` の有効化とダッシュボードの opt-out）まで完了。次は 4-3（公開記事の一覧）。**
+**ステップ4 のサブステップ4（キャッシュのタグ付けとパージ）まで完了。次は 4-5（記事詳細ページと Markdown）。**
 
 | # | 内容 | 状態 |
 | --- | --- | --- |
 | 4-1 | `cacheComponents: true` を有効にする | 完了 |
 | 4-2 | ダッシュボードを prerender の対象外にする | 完了 |
-| 4-3 | 公開記事の一覧（`use cache`） | **次にやる** |
-| 4-4 | 一覧が更新されない問題を `cacheTag` / `revalidateTag` で解く | 未着手 |
-| 4-5 | 記事詳細ページと Markdown レンダリング | 未着手 |
+| 4-3 | 公開記事の一覧（`use cache`） | 完了 |
+| 4-4 | `cacheTag` / `updateTag` でキャッシュを落とす | 完了 |
+| 4-5 | 記事詳細ページと Markdown レンダリング | **次にやる** |
 | 4-6 | 抜粋の切り出し（純粋関数 ＋ 単体テスト） | 未着手 |
 | 4-7 | ペイウォール（サーバー側で本文を切る） | 未着手 |
 | 4-8 | DAL への集約 | 未着手 |
@@ -498,6 +498,9 @@ drizzle/            # マイグレーション出力
 
 - **`instant = false` は「PPR をやめる」設定ではない。** PPR は有効なまま、静的シェルが空でもエラーにしない設定。`prerender-manifest.json` ではダッシュボードも `/login` も全部 `PARTIALLY_STATIC` になる
 - ダッシュボード配下の静的シェルはすべて 0 バイト（実測）。`/login` は 11KB、`/signup` は 12KB
+- **`revalidateTag` は Next.js 16 で第2引数（寿命プロファイル）が必須になった。** Server Action から即座にキャッシュを落とす用途は `updateTag(tag)` が担う（`next/cache`）。以前の知識で `revalidateTag(tag)` と書くと引数不足で落ちる
+- **キャッシュのパージは迷ったら多めに落とす。** 余分な再生成はクエリ1本ぶんだが、落とし漏れは古いデータを黙って返し続け、エラーも出ずテストも通る。ただしこの非対称性は再生成が安いうちの話
+- **公開 URL は `/articles/[id]`。** 著者の UUID は `auth.users` の ID そのものなので公開 URL に出さない。`/[username]/[id]` にする場合は username の予約語チェック（`login` / `dashboard` など）がセットで必要
 - **ビルド出力の記号は当てにしない。** `/dashboard/articles/[id]/edit` は `◐` と表示されるが、シェルは他と同じく 0 バイトで実体は `ƒ` と変わらない。動的パラメータを持つルートは manifest の `dynamicRoutes` に入り、`hasEmptyStaticShell` の集計から外れる経路があるため（`build/index.js` の `if (isDynamicRoute(page) && route.pathname === page) continue;`）。判断するときは HTML のバイト数と manifest を見る
 
 ### ステップ3 の記録
