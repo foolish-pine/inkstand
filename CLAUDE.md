@@ -481,7 +481,26 @@ drizzle/            # マイグレーション出力
 
 ### 現在地
 
-**ステップ3 は完了。次はステップ4（閲覧とペイウォール）。**
+**ステップ4 のサブステップ2（`cacheComponents` の有効化とダッシュボードの opt-out）まで完了。次は 4-3（公開記事の一覧）。**
+
+| # | 内容 | 状態 |
+| --- | --- | --- |
+| 4-1 | `cacheComponents: true` を有効にする | 完了 |
+| 4-2 | ダッシュボードを prerender の対象外にする | 完了 |
+| 4-3 | 公開記事の一覧（`use cache`） | **次にやる** |
+| 4-4 | 一覧が更新されない問題を `cacheTag` / `revalidateTag` で解く | 未着手 |
+| 4-5 | 記事詳細ページと Markdown レンダリング | 未着手 |
+| 4-6 | 抜粋の切り出し（純粋関数 ＋ 単体テスト） | 未着手 |
+| 4-7 | ペイウォール（サーバー側で本文を切る） | 未着手 |
+| 4-8 | DAL への集約 | 未着手 |
+
+`cacheComponents` について実測した結論:
+
+- **`instant = false` は「PPR をやめる」設定ではない。** PPR は有効なまま、静的シェルが空でもエラーにしない設定。`prerender-manifest.json` ではダッシュボードも `/login` も全部 `PARTIALLY_STATIC` になる
+- ダッシュボード配下の静的シェルはすべて 0 バイト（実測）。`/login` は 11KB、`/signup` は 12KB
+- **ビルド出力の記号は当てにしない。** `/dashboard/articles/[id]/edit` は `◐` と表示されるが、シェルは他と同じく 0 バイトで実体は `ƒ` と変わらない。動的パラメータを持つルートは manifest の `dynamicRoutes` に入り、`hasEmptyStaticShell` の集計から外れる経路があるため（`build/index.js` の `if (isDynamicRoute(page) && route.pathname === page) continue;`）。判断するときは HTML のバイト数と manifest を見る
+
+### ステップ3 の記録
 
 | # | 内容 | 状態 |
 | --- | --- | --- |
