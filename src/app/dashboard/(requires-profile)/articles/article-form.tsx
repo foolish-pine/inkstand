@@ -1,29 +1,37 @@
 "use client";
 
 import { useActionState } from "react";
-import { createArticle, CreateArticleFormState } from "@/actions/articles";
+import {
+  type ArticleFormState,
+  type ArticleFormValues,
+} from "@/actions/articles";
 import { TextField } from "@/components/text-field";
 import { TextareaField } from "@/components/textarea-field";
 
-const initialState: CreateArticleFormState = {
-  defaultValues: {
-    title: "",
-    body: "",
-    status: "draft",
-    price: "",
-  },
-  formErrors: [],
-  fieldErrors: {},
-};
-
-export function ArticleForm() {
-  const [state, formAction, isPending] = useActionState(
-    createArticle,
-    initialState,
-  );
+export function ArticleForm({
+  defaultValues,
+  action,
+  articleId,
+}: {
+  defaultValues: ArticleFormValues;
+  action: (
+    prevState: ArticleFormState,
+    formData: FormData,
+  ) => Promise<ArticleFormState>;
+  articleId?: string;
+}) {
+  const initialState: ArticleFormState = {
+    defaultValues,
+    formErrors: [],
+    fieldErrors: {},
+  };
+  const [state, formAction, isPending] = useActionState(action, initialState);
 
   return (
     <form action={formAction} className="mt-12 space-y-10">
+      {articleId && (
+        <input type="hidden" name="articleId" defaultValue={articleId} />
+      )}
       <TextField
         label="タイトル"
         name="title"

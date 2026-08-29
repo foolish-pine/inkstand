@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createArticleSchema } from "./create-article-schema";
+import { articleFormSchema } from "./article-form-schema";
 
 const validInput = {
   title: "タイトル",
@@ -8,7 +8,7 @@ const validInput = {
   price: "500",
 };
 
-describe("createArticleSchema", () => {
+describe("articleFormSchema", () => {
   it("正常な入力はパースできる", () => {
     const expectedOutput = {
       title: "タイトル",
@@ -16,7 +16,7 @@ describe("createArticleSchema", () => {
       status: "draft",
       price: 500,
     };
-    const result = createArticleSchema.safeParse(validInput);
+    const result = articleFormSchema.safeParse(validInput);
 
     expect(result.success).toBe(true);
     expect(result.data).toStrictEqual(expectedOutput);
@@ -27,7 +27,7 @@ describe("createArticleSchema", () => {
         ...validInput,
         title: "あ".repeat(length),
       };
-      const result = createArticleSchema.safeParse(input);
+      const result = articleFormSchema.safeParse(input);
       const errorFields = result.error?.issues.map((issue) => issue.path[0]);
 
       expect(result.success).toBe(false);
@@ -39,7 +39,7 @@ describe("createArticleSchema", () => {
         ...validInput,
         title,
       };
-      const result = createArticleSchema.safeParse(input);
+      const result = articleFormSchema.safeParse(input);
 
       expect(result.success).toBe(true);
       expect(result.data?.title).toBe(title);
@@ -51,7 +51,7 @@ describe("createArticleSchema", () => {
         ...validInput,
         body: "",
       };
-      const result = createArticleSchema.safeParse(input);
+      const result = articleFormSchema.safeParse(input);
       const errorFields = result.error?.issues.map((issue) => issue.path[0]);
 
       expect(result.success).toBe(false);
@@ -63,7 +63,7 @@ describe("createArticleSchema", () => {
         ...validInput,
         body,
       };
-      const result = createArticleSchema.safeParse(input);
+      const result = articleFormSchema.safeParse(input);
 
       expect(result.success).toBe(true);
       expect(result.data?.body).toBe(body);
@@ -75,7 +75,7 @@ describe("createArticleSchema", () => {
         ...validInput,
         status,
       };
-      const result = createArticleSchema.safeParse(input);
+      const result = articleFormSchema.safeParse(input);
       const errorFields = result.error?.issues.map((issue) => issue.path[0]);
 
       expect(result.success).toBe(false);
@@ -86,7 +86,7 @@ describe("createArticleSchema", () => {
         ...validInput,
         status,
       };
-      const result = createArticleSchema.safeParse(input);
+      const result = articleFormSchema.safeParse(input);
 
       expect(result.success).toBe(true);
       expect(result.data?.status).toBe(status);
@@ -100,7 +100,7 @@ describe("createArticleSchema", () => {
           ...validInput,
           price,
         };
-        const result = createArticleSchema.safeParse(input);
+        const result = articleFormSchema.safeParse(input);
         const errorFields = result.error?.issues.map((issue) => issue.path[0]);
 
         expect(result.success).toBe(false);
@@ -112,7 +112,7 @@ describe("createArticleSchema", () => {
         ...validInput,
         price: " 100 ",
       };
-      const result = createArticleSchema.safeParse(input);
+      const result = articleFormSchema.safeParse(input);
 
       expect(result.success).toBe(true);
       expect(result.data?.price).toBe(100);
@@ -126,7 +126,7 @@ describe("createArticleSchema", () => {
         ...validInput,
         price,
       };
-      const result = createArticleSchema.safeParse(input);
+      const result = articleFormSchema.safeParse(input);
 
       expect(result.success).toBe(true);
       expect(result.data?.price).toBe(expected);

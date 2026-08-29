@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { ArticleForm } from "./article-form";
+import { ArticleForm } from "../article-form";
+import { createArticle } from "@/actions/articles";
 import { requireUser } from "@/lib/current-user";
 
 export default async function NewArticle() {
@@ -14,7 +15,15 @@ export default async function NewArticle() {
         ダッシュボードへ戻る
       </Link>
       <h1 className="font-display mt-8 text-3xl tracking-wide">記事を書く</h1>
-      <ArticleForm />
+      <ArticleForm
+        defaultValues={{
+          title: "",
+          body: "",
+          status: "draft",
+          price: "",
+        }}
+        action={createArticle}
+      />
     </main>
   );
 }

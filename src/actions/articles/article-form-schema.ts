@@ -1,7 +1,7 @@
 import z from "zod";
 import { articleStatus } from "@/db/schema";
 
-export const createArticleSchema = z.object({
+export const articleFormSchema = z.object({
   title: z
     .string()
     .min(1, "タイトルを入力してください。")

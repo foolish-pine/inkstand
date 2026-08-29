@@ -1,20 +1,23 @@
 "use server";
 
-import { redirect } from "next/navigation";
+import { and, eq, sql } from "drizzle-orm";
+import { notFound, redirect } from "next/navigation";
 import z from "zod";
-import { createArticleSchema } from "./articles/create-article-schema";
+import { articleFormSchema } from "./articles/article-form-schema";
 import { getString } from "./form-data";
 import { db } from "@/db";
 import { articles } from "@/db/schema";
 import { requireUser } from "@/lib/current-user";
 
-export type CreateArticleFormState = {
-  defaultValues: {
-    title: string;
-    body: string;
-    status: string;
-    price: string;
-  };
+export type ArticleFormValues = {
+  title: string;
+  body: string;
+  status: string;
+  price: string;
+};
+
+export type ArticleFormState = {
+  defaultValues: ArticleFormValues;
   formErrors: string[];
   fieldErrors: {
     title?: string[];
@@ -25,9 +28,9 @@ export type CreateArticleFormState = {
 };
 
 export async function createArticle(
-  prevState: CreateArticleFormState,
+  prevState: ArticleFormState,
   formData: FormData,
-): Promise<CreateArticleFormState> {
+): Promise<ArticleFormState> {
   const user = await requireUser();
 
   const defaultValues = {
@@ -37,12 +40,7 @@ export async function createArticle(
     price: getString(formData, "price"),
   };
 
-  const validated = createArticleSchema.safeParse({
-    title: formData.get("title"),
-    body: formData.get("body"),
-    status: formData.get("status"),
-    price: formData.get("price"),
-  });
+  const validated = articleFormSchema.safeParse(defaultValues);
 
   if (!validated.success)
     return {
@@ -60,6 +58,49 @@ export async function createArticle(
     price,
     ...(status === "published" && { publishedAt: new Date() }),
   });
+
+  redirect("/dashboard");
+}
+
+export async function updateArticle(
+  prevState: ArticleFormState,
+  formData: FormData,
+): Promise<ArticleFormState> {
+  const user = await requireUser();
+
+  const defaultValues = {
+    title: getString(formData, "title"),
+    body: getString(formData, "body"),
+    status: getString(formData, "status"),
+    price: getString(formData, "price"),
+  };
+
+  const validated = articleFormSchema.safeParse(defaultValues);
+
+  if (!validated.success)
+    return {
+      defaultValues,
+      ...z.flattenError(validated.error),
+    };
+
+  const articleId = getString(formData, "articleId");
+  const { title, body, status, price } = validated.data;
+
+  const [article] = await db
+    .update(articles)
+    .set({
+      title,
+      body,
+      status,
+      price,
+      ...(status === "published" && {
+        publishedAt: sql`COALESCE(${articles.publishedAt}, NOW())`,
+      }),
+    })
+    .where(and(eq(articles.id, articleId), eq(articles.authorId, user.id)))
+    .returning({ id: articles.id });
+
+  if (!article) notFound();
 
   redirect("/dashboard");
 }
