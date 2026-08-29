@@ -2,6 +2,8 @@ import { signOut } from "@/actions/auth";
 import { Wordmark } from "@/components/wordmark";
 import { requireUser } from "@/lib/current-user";
 
+export const instant = false;
+
 export default async function DashboardLayout({
   children,
 }: LayoutProps<"/dashboard">) {
