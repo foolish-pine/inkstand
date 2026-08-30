@@ -1,7 +1,7 @@
 "use server";
 
 import { and, eq, sql } from "drizzle-orm";
-import { refresh, updateTag } from "next/cache";
+import { updateTag } from "next/cache";
 import { notFound, redirect } from "next/navigation";
 import z from "zod";
 import { articleFormSchema } from "./articles/article-form-schema";

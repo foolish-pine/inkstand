@@ -10,6 +10,16 @@ const eslintConfig = defineConfig([
     rules: {
       "import/first": "error",
       "import/order": ["error", { alphabetize: { order: "asc" } }],
+      // 既定は warning だが、npm run lint が落ちないため見落とし続けた。
+      // 意図的に使わないものは _ 始まりにする。
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+        },
+      ],
     },
   },
   prettier,
