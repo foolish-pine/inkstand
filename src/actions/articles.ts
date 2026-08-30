@@ -1,14 +1,14 @@
 "use server";
 
 import { and, eq, sql } from "drizzle-orm";
-import { updateTag } from "next/cache";
+import { refresh, updateTag } from "next/cache";
 import { notFound, redirect } from "next/navigation";
 import z from "zod";
 import { articleFormSchema } from "./articles/article-form-schema";
 import { getString } from "./form-data";
 import { db } from "@/db";
 import { articles } from "@/db/schema";
-import { latestArticlesTag } from "@/lib/cache-tags";
+import { latestArticlesTag, articleTag } from "@/lib/cache-tags";
 import { requireUser } from "@/lib/current-user";
 
 export type ArticleFormValues = {
@@ -107,6 +107,7 @@ export async function updateArticle(
   if (!article) notFound();
 
   updateTag(latestArticlesTag);
+  updateTag(articleTag(article.id));
 
   redirect("/dashboard");
 }
@@ -124,6 +125,7 @@ export async function deleteArticle(formData: FormData): Promise<void> {
   if (!article) notFound();
 
   updateTag(latestArticlesTag);
+  updateTag(articleTag(article.id));
 
   redirect("/dashboard");
 }

@@ -1,19 +1,10 @@
 import { desc, eq } from "drizzle-orm";
 import { cacheTag } from "next/cache";
 import Link from "next/link";
-import { latestArticlesTag } from "../lib/cache-tags";
 import { db } from "@/db";
 import { articles } from "@/db/schema";
-
-// このページはビルド時に生成されるため、タイムゾーンを明示しないと
-// ビルド環境（Vercel は UTC）の時刻で日付が決まる。日本時間の夜に公開した
-// 記事が前日の日付で表示されるのを防ぐ。
-const publishedAtFormatter = new Intl.DateTimeFormat("ja-JP", {
-  year: "numeric",
-  month: "long",
-  day: "numeric",
-  timeZone: "Asia/Tokyo",
-});
+import { latestArticlesTag } from "@/lib/cache-tags";
+import { publishedAtFormatter } from "@/lib/published-at-formatter";
 
 async function getLatestArticles() {
   "use cache";

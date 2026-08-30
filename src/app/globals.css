@@ -14,6 +14,10 @@
   --rule: #d5d8d0;
   --accent: #26417a;
   --seal: #b23a2b;
+
+  /* 明朝体は日本語の出版物の顔。見出しとロゴにだけ使う。
+     色と違いテーマで変わらないので、ここで一度だけ定義する。 */
+  --display: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", serif;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -52,13 +56,104 @@
   --color-seal: var(--seal);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-
-  /* 明朝体は日本語の出版物の顔。見出しとロゴにだけ使う */
-  --font-display: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", serif;
+  --font-display: var(--display);
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
   text-autospace: normal;
+}
+
+/* 記事本文は Markdown から生成されるためクラスを付けられない。
+   要素セレクタでまとめて整える。@tailwindcss/typography は
+   このステップで必要になるライブラリではないので導入していない。 */
+.article-body {
+  font-size: 0.95rem;
+  line-height: 2;
+}
+
+.article-body > * + * {
+  margin-top: 1.5rem;
+}
+
+.article-body h2 {
+  margin-top: 3rem;
+  font-family: var(--display);
+  font-size: 1.25rem;
+  letter-spacing: 0.05em;
+}
+
+.article-body h3 {
+  margin-top: 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.article-body ul {
+  padding-left: 1.5rem;
+  list-style: disc;
+}
+
+.article-body ol {
+  padding-left: 1.5rem;
+  list-style: decimal;
+}
+
+.article-body li + li {
+  margin-top: 0.5rem;
+}
+
+.article-body a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+}
+
+.article-body blockquote {
+  padding-left: 1rem;
+  color: var(--muted);
+  border-left: 2px solid var(--rule);
+}
+
+.article-body code {
+  padding: 0.125rem 0.375rem;
+  font-family: var(--font-geist-mono);
+  font-size: 0.875em;
+  background: var(--surface);
+}
+
+.article-body pre {
+  padding: 1rem;
+  overflow-x: auto;
+  background: var(--surface);
+}
+
+.article-body pre code {
+  padding: 0;
+  background: none;
+}
+
+.article-body hr {
+  margin: 3rem 0;
+  border-top: 1px solid var(--rule);
+}
+
+.article-body table {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+}
+
+.article-body th,
+.article-body td {
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid var(--rule);
+}
+
+.article-body img {
+  max-width: 100%;
+  height: auto;
 }
