@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import Markdown from "react-markdown";
 import rehypeSanitize from "rehype-sanitize";
 import remarkGfm from "remark-gfm";
+import { buildExcerpt } from "./excerpt";
 import { db } from "@/db";
 import { articles } from "@/db/schema";
 import { articleTag } from "@/lib/cache-tags";
@@ -19,6 +20,7 @@ async function getPublishedArticle(id: string) {
       id: articles.id,
       title: articles.title,
       body: articles.body,
+      price: articles.price,
       publishedAt: articles.publishedAt,
     })
     .from(articles)
@@ -35,6 +37,10 @@ async function ArticleContent({
 
   if (!article) notFound();
 
+  const isFree = article.price === 0;
+  const excerpt = buildExcerpt(article.body);
+  const bodyToRender = isFree ? article.body : excerpt.text;
+
   return (
     <>
       <h1 className="font-display text-3xl leading-relaxed tracking-wide">
@@ -48,11 +54,34 @@ async function ArticleContent({
           {publishedAtFormatter.format(article.publishedAt)}
         </time>
       )}
-      <div className="article-body border-rule mt-10 border-t pt-10">
-        <Markdown rehypePlugins={[rehypeSanitize]} remarkPlugins={[remarkGfm]}>
-          {article.body}
-        </Markdown>
+      <div className="border-rule relative mt-10 border-t pt-10">
+        <div className="article-body">
+          <Markdown
+            rehypePlugins={[rehypeSanitize]}
+            remarkPlugins={[remarkGfm]}
+          >
+            {bodyToRender}
+          </Markdown>
+        </div>
+        {/* 抜粋の末尾が唐突に切れて見えないよう、下端を背景色へ溶かす。
+            隠しているのはサーバー側なので、これは見た目だけの処理。 */}
+        {!isFree && (
+          <div className="from-background pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-linear-to-t to-transparent" />
+        )}
       </div>
+      {!isFree && (
+        <div className="border-rule mt-10 border p-10 text-center">
+          <p className="font-display text-lg tracking-wide">
+            ここから先は有料です
+          </p>
+          <p className="text-muted mt-3 text-sm">
+            続きを読むには記事の購入が必要です。
+          </p>
+          <p className="mt-8 text-3xl tabular-nums">
+            ¥{article.price.toLocaleString("ja-JP")}
+          </p>
+        </div>
+      )}
     </>
   );
 }
