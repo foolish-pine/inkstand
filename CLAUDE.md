@@ -481,7 +481,7 @@ drizzle/            # マイグレーション出力
 
 ### 現在地
 
-**ステップ4 のサブステップ6（抜粋の切り出し）まで完了。次は 4-7（ペイウォール）。**
+**ステップ4 のサブステップ7（ペイウォール）は実装完了。`db:migrate` の適用と Network タブでの確認が未了。**
 
 | # | 内容 | 状態 |
 | --- | --- | --- |
@@ -491,7 +491,7 @@ drizzle/            # マイグレーション出力
 | 4-4 | `cacheTag` / `updateTag` でキャッシュを落とす | 完了 |
 | 4-5 | 記事詳細ページと Markdown レンダリング | 完了 |
 | 4-6 | 抜粋の切り出し（純粋関数 ＋ 単体テスト） | 完了（12 ケース。変異 5 種すべて検知） |
-| 4-7 | ペイウォール（サーバー側で本文を切る） | **次にやる** |
+| 4-7 | ペイウォール（サーバー側で本文を切る） | 実装完了。**`db:migrate` と Network タブでの確認が未了** |
 | 4-8 | DAL への集約 | 未着手 |
 
 `cacheComponents` について実測した結論:
@@ -501,6 +501,9 @@ drizzle/            # マイグレーション出力
 - **`revalidateTag` は Next.js 16 で第2引数（寿命プロファイル）が必須になった。** Server Action から即座にキャッシュを落とす用途は `updateTag(tag)` が担う（`next/cache`）。以前の知識で `revalidateTag(tag)` と書くと引数不足で落ちる
 - **キャッシュのパージは迷ったら多めに落とす。** 余分な再生成はクエリ1本ぶんだが、落とし漏れは古いデータを黙って返し続け、エラーも出ずテストも通る。ただしこの非対称性は再生成が安いうちの話
 - **公開 URL は `/articles/[id]`。** 著者の UUID は `auth.users` の ID そのものなので公開 URL に出さない。`/[username]/[id]` にする場合は username の予約語チェック（`login` / `dashboard` など）がセットで必要
+- **文字数の数え方が JS と Postgres で違う。** JS の `.length` は UTF-16 のコード単位（絵文字 1 つ = 2）、Postgres の `char_length` は文字（= 1）。**下限の判定では JS の方が甘くなり、zod を通って DB の check 制約で落ちる。**`src/actions/articles/count-characters.ts` の `countCharacters`（コードポイントを数える）で一致させている。文字数の規則を足すときは必ずこれを使う。上限（`varchar` など）は JS の方が厳しくなるので安全側
+- **`sql` テンプレートに JS の値を埋めると `$1` のプレースホルダになる。** DDL には値が入らないので check 制約では使えない。`sql.raw(String(定数))` を**数値の部分にだけ**使い、カラム参照は `${t.column}` のまま残す（そうしないとカラム名の変更に Drizzle が追随しない）。**生成された SQL を読まずに `db:migrate` しない**
+- **有料記事には最低本文長（1000 文字）がある。** 抜粋（上限 400）は上限に収まれば本文をそのまま返すため、本文が短い有料記事は全文が読めてしまう。入口で弾いている。zod と DB の check 制約の両方に置き、定数は `src/db/schema.ts` から export している
 - **ビルド出力の記号は当てにしない。** `/dashboard/articles/[id]/edit` は `◐` と表示されるが、シェルは他と同じく 0 バイトで実体は `ƒ` と変わらない。動的パラメータを持つルートは manifest の `dynamicRoutes` に入り、`hasEmptyStaticShell` の集計から外れる経路があるため（`build/index.js` の `if (isDynamicRoute(page) && route.pathname === page) continue;`）。判断するときは HTML のバイト数と manifest を見る
 
 ### ステップ3 の記録
