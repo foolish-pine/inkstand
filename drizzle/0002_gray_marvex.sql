@@ -1,0 +1,1 @@
+ALTER TABLE "articles" ADD CONSTRAINT "paid_body_min_length" CHECK ("articles"."price" = 0 OR char_length("articles"."body") >= 1000);

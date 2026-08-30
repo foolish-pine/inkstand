@@ -41,6 +41,8 @@ export const profiles = pgTable(
 );
 
 export const articleStatus = pgEnum("article_status", ["draft", "published"]);
+export const ARTICLE_TITLE_MAX_LENGTH = 200;
+export const PAID_ARTICLE_BODY_MIN_LENGTH = 1000;
 
 export const articles = pgTable(
   "articles",
@@ -51,7 +53,7 @@ export const articles = pgTable(
     authorId: uuid()
       .notNull()
       .references(() => profiles.id),
-    title: varchar({ length: 200 }).notNull(),
+    title: varchar({ length: ARTICLE_TITLE_MAX_LENGTH }).notNull(),
     body: text().notNull(),
     status: articleStatus().notNull().default("draft"),
     price: integer().notNull(),
@@ -67,6 +69,10 @@ export const articles = pgTable(
     check(
       "published_requires_date",
       sql`${t.status} <> 'published' OR ${t.publishedAt} IS NOT NULL`,
+    ),
+    check(
+      "paid_body_min_length",
+      sql`${t.price} = 0 OR char_length(${t.body}) >= ${sql.raw(String(PAID_ARTICLE_BODY_MIN_LENGTH))}`,
     ),
   ],
 );
