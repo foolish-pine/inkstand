@@ -1,27 +1,6 @@
-import { desc, eq } from "drizzle-orm";
-import { cacheTag } from "next/cache";
 import Link from "next/link";
-import { db } from "@/db";
-import { articles } from "@/db/schema";
-import { latestArticlesTag } from "@/lib/cache-tags";
+import { getLatestArticles } from "@/lib/dal/published-articles";
 import { publishedAtFormatter } from "@/lib/published-at-formatter";
-
-async function getLatestArticles() {
-  "use cache";
-  cacheTag(latestArticlesTag);
-
-  return await db
-    .select({
-      id: articles.id,
-      title: articles.title,
-      price: articles.price,
-      publishedAt: articles.publishedAt,
-    })
-    .from(articles)
-    .where(eq(articles.status, "published"))
-    .orderBy(desc(articles.publishedAt))
-    .limit(20);
-}
 
 export default async function Home() {
   const latestArticles = await getLatestArticles();

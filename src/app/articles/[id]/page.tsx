@@ -1,33 +1,11 @@
-import { and, eq } from "drizzle-orm";
-import { cacheTag } from "next/cache";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import Markdown from "react-markdown";
 import rehypeSanitize from "rehype-sanitize";
 import remarkGfm from "remark-gfm";
 import { buildExcerpt } from "./excerpt";
-import { db } from "@/db";
-import { articles } from "@/db/schema";
-import { articleTag } from "@/lib/cache-tags";
+import { getPublishedArticle } from "@/lib/dal/published-articles";
 import { publishedAtFormatter } from "@/lib/published-at-formatter";
-
-async function getPublishedArticle(id: string) {
-  "use cache";
-  cacheTag(articleTag(id));
-
-  const [article] = await db
-    .select({
-      id: articles.id,
-      title: articles.title,
-      body: articles.body,
-      price: articles.price,
-      publishedAt: articles.publishedAt,
-    })
-    .from(articles)
-    .where(and(eq(articles.id, id), eq(articles.status, "published")));
-
-  return article;
-}
 
 async function ArticleContent({
   params,

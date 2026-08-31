@@ -9,7 +9,12 @@ const eslintConfig = defineConfig([
   {
     rules: {
       "import/first": "error",
-      "import/order": ["error", { alphabetize: { order: "asc" } }],
+      "import/order": [
+        "error",
+        { alphabetize: { order: "asc" }, "newlines-between": "never" },
+      ],
+      // 同じモジュールからの import が 2 行に分かれるのを防ぐ。
+      "import/no-duplicates": "error",
       // 既定は warning だが、npm run lint が落ちないため見落とし続けた。
       // 意図的に使わないものは _ 始まりにする。
       "@typescript-eslint/no-unused-vars": [
