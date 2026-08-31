@@ -18,5 +18,7 @@ export default defineConfig({
     globals: true,
     setupFiles: ["./vitest.setup.ts"],
     include: ["src/**/*.test.{ts,tsx}"],
+    // DB に接続するテストは vitest.db.config.mts が担当する（npm run test:db）
+    exclude: ["src/**/*.db.test.ts"],
   },
 });

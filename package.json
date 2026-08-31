@@ -12,7 +12,9 @@
     "test": "vitest run",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "test:db": "vitest run --config vitest.db.config.mts",
+    "db:migrate:test": "ENV_FILE=.env.test drizzle-kit migrate"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",

@@ -40,3 +40,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 !.env.example
+# ローカル Supabase の既定値しか入っていないため、テスト用は追跡する
+!.env.test
