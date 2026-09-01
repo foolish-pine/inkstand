@@ -6,7 +6,7 @@ import {
 import { createTestArticle, createTestUser } from "@/test/fixtures";
 
 describe("getLatestArticles", () => {
-  it("下書きを含まない", async () => {
+  it("公開状態の記事のみ取得できる", async () => {
     const { userId } = await createTestUser();
     const published = await createTestArticle({ authorId: userId });
     await createTestArticle({ authorId: userId, status: "draft" });
@@ -34,7 +34,7 @@ describe("getLatestArticles", () => {
 });
 
 describe("getPublishedArticle", () => {
-  it("存在する公開記事のidを指定すると、その記事を取得する", async () => {
+  it("存在する公開記事の id を指定すると、その記事を取得する", async () => {
     const { userId } = await createTestUser();
     const article = await createTestArticle({
       authorId: userId,
@@ -44,14 +44,14 @@ describe("getPublishedArticle", () => {
 
     expect(result?.id).toBe(article.id);
   });
-  it("存在しないidを渡すとundefinedが返る", async () => {
+  it("存在しない id を渡すと undefined が返る", async () => {
     const { userId } = await createTestUser();
     await createTestArticle({ authorId: userId });
     const result = await getPublishedArticle("notExistingId");
 
     expect(result).toBeUndefined();
   });
-  it("下書き状態の記事のidを渡すとundefinedが返る", async () => {
+  it("下書き状態の記事の id を渡すと undefined が返る", async () => {
     const { userId } = await createTestUser();
     const article = await createTestArticle({
       authorId: userId,

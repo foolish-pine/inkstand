@@ -1,22 +1,12 @@
-import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
-import { db } from "@/db";
-import { profiles } from "@/db/schema";
-import { requireUser } from "@/lib/current-user";
+import { getMyProfile } from "@/lib/dal/my-profile";
 
 export default async function RequiresProfileLayout({
   children,
 }: LayoutProps<"/dashboard">) {
-  const user = await requireUser();
+  const myProfile = await getMyProfile();
 
-  const [existingProfile] = await db
-    .select({
-      id: profiles.id,
-    })
-    .from(profiles)
-    .where(eq(profiles.id, user.id));
-
-  if (!existingProfile) redirect("/dashboard/profile/new");
+  if (!myProfile) redirect("/dashboard/profile/new");
 
   return <>{children}</>;
 }

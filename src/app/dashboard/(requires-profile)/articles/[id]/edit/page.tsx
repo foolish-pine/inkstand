@@ -1,28 +1,15 @@
-import { and, eq } from "drizzle-orm";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArticleForm } from "../../article-form";
 import { DeleteArticleButton } from "./delete-article-button";
 import { updateArticle } from "@/actions/articles";
-import { db } from "@/db";
-import { articles } from "@/db/schema";
-import { requireUser } from "@/lib/current-user";
+import { getMyArticle } from "@/lib/dal/my-articles";
 
 export default async function EditArticle({
   params,
 }: PageProps<"/dashboard/articles/[id]/edit">) {
-  const user = await requireUser();
   const { id } = await params;
-  const [article] = await db
-    .select({
-      id: articles.id,
-      title: articles.title,
-      body: articles.body,
-      status: articles.status,
-      price: articles.price,
-    })
-    .from(articles)
-    .where(and(eq(articles.authorId, user.id), eq(articles.id, id)));
+  const article = await getMyArticle(id);
 
   if (!article) notFound();
 

@@ -1,23 +1,11 @@
-import { desc, eq } from "drizzle-orm";
 import Link from "next/link";
-import { db } from "@/db";
-import { articles } from "@/db/schema";
 import { requireUser } from "@/lib/current-user";
+import { getMyArticles } from "@/lib/dal/my-articles";
 
 export default async function Dashboard() {
   const user = await requireUser();
 
-  const myArticles = await db
-    .select({
-      id: articles.id,
-      title: articles.title,
-      status: articles.status,
-      price: articles.price,
-      updatedAt: articles.updatedAt,
-    })
-    .from(articles)
-    .where(eq(articles.authorId, user.id))
-    .orderBy(desc(articles.createdAt));
+  const myArticles = await getMyArticles();
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-16">
