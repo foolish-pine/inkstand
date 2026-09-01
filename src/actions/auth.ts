@@ -2,13 +2,13 @@
 
 import { eq, sql } from "drizzle-orm";
 import { redirect } from "next/navigation";
-import postgres from "postgres";
 import z from "zod";
 import { signInSchema } from "./auth/sign-in-schema";
 import { signUpSchema } from "./auth/sign-up-schema";
 import { getString } from "./form-data";
 import { db } from "@/db";
 import { profiles } from "@/db/schema";
+import { createProfile, DuplicatedUsernameError } from "@/lib/dal/signup";
 import { createClient } from "@/lib/supabase/server";
 
 export type SignUpFormState = {
@@ -78,17 +78,9 @@ export async function signUp(
     };
 
   try {
-    await db.insert(profiles).values({
-      id: data.user.id,
-      username,
-      displayName: username,
-    });
+    await createProfile(data.user.id, username);
   } catch (e) {
-    if (
-      e instanceof postgres.PostgresError &&
-      e.code === "23505" &&
-      e.constraint_name === "profiles_username_lower_idx"
-    ) {
+    if (e instanceof DuplicatedUsernameError) {
       return {
         defaultValues,
         formErrors: [],
@@ -98,11 +90,7 @@ export async function signUp(
       };
     }
 
-    return {
-      defaultValues,
-      formErrors: ["ユーザー登録に失敗しました。もう一度お試しください。"],
-      fieldErrors: {},
-    };
+    throw e;
   }
 
   redirect("/dashboard");
