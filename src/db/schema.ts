@@ -33,7 +33,7 @@ export const profiles = pgTable(
     updatedAt: timestamp({ withTimezone: true })
       .notNull()
       .defaultNow()
-      .$onUpdate(() => new Date()),
+      .$onUpdate(() => sql`NOW()`),
   },
   (t) => [
     uniqueIndex("profiles_username_lower_idx").on(sql`lower(${t.username})`),
@@ -61,7 +61,7 @@ export const articles = pgTable(
     updatedAt: timestamp({ withTimezone: true })
       .notNull()
       .defaultNow()
-      .$onUpdate(() => new Date()),
+      .$onUpdate(() => sql`NOW()`),
     publishedAt: timestamp({ withTimezone: true }),
   },
   (t) => [
