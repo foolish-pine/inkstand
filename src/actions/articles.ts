@@ -1,15 +1,16 @@
 "use server";
 
-import { and, eq, sql } from "drizzle-orm";
 import { updateTag } from "next/cache";
 import { notFound, redirect } from "next/navigation";
 import z from "zod";
 import { articleFormSchema } from "./articles/article-form-schema";
 import { getString } from "./form-data";
-import { db } from "@/db";
-import { articles } from "@/db/schema";
 import { latestArticlesTag, articleTag } from "@/lib/cache-tags";
-import { requireUser } from "@/lib/current-user";
+import {
+  createMyArticle,
+  deleteMyArticle,
+  updateMyArticle,
+} from "@/lib/dal/my-articles";
 
 export type ArticleFormValues = {
   title: string;
@@ -33,8 +34,6 @@ export async function createArticle(
   prevState: ArticleFormState,
   formData: FormData,
 ): Promise<ArticleFormState> {
-  const user = await requireUser();
-
   const defaultValues = {
     title: getString(formData, "title"),
     body: getString(formData, "body"),
@@ -52,13 +51,11 @@ export async function createArticle(
 
   const { title, body, status, price } = validated.data;
 
-  await db.insert(articles).values({
-    authorId: user.id,
+  await createMyArticle({
     title,
     body,
     status,
     price,
-    ...(status === "published" && { publishedAt: new Date() }),
   });
 
   updateTag(latestArticlesTag);
@@ -70,8 +67,6 @@ export async function updateArticle(
   prevState: ArticleFormState,
   formData: FormData,
 ): Promise<ArticleFormState> {
-  const user = await requireUser();
-
   const defaultValues = {
     title: getString(formData, "title"),
     body: getString(formData, "body"),
@@ -90,19 +85,12 @@ export async function updateArticle(
   const articleId = getString(formData, "articleId");
   const { title, body, status, price } = validated.data;
 
-  const [article] = await db
-    .update(articles)
-    .set({
-      title,
-      body,
-      status,
-      price,
-      ...(status === "published" && {
-        publishedAt: sql`COALESCE(${articles.publishedAt}, NOW())`,
-      }),
-    })
-    .where(and(eq(articles.authorId, user.id), eq(articles.id, articleId)))
-    .returning({ id: articles.id });
+  const article = await updateMyArticle(articleId, {
+    title,
+    body,
+    status,
+    price,
+  });
 
   if (!article) notFound();
 
@@ -113,14 +101,9 @@ export async function updateArticle(
 }
 
 export async function deleteArticle(formData: FormData): Promise<void> {
-  const user = await requireUser();
-
   const articleId = getString(formData, "articleId");
 
-  const [article] = await db
-    .delete(articles)
-    .where(and(eq(articles.id, articleId), eq(articles.authorId, user.id)))
-    .returning({ id: articles.id });
+  const article = await deleteMyArticle(articleId);
 
   if (!article) notFound();
 
