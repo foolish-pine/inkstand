@@ -17,6 +17,7 @@
 
 - Node.js 24.15.0（開発に使用しているバージョン）
 - npm 11.12.1
+- Docker（DB に接続するテストを走らせる場合のみ。ローカルの Supabase を起動するために使います）
 
 外部サービスのアカウントは、必要になったステップで用意します。最初にすべてそろえる必要はありません。
 
@@ -53,9 +54,30 @@ http://localhost:3000 を開きます。
 | `lint`      | ESLint の検査 ＋ `prettier --check`（検査のみ。修正しない） |
 | `format`    | `eslint --fix` ＋ `prettier --write`                        |
 | `typecheck` | `tsc --noEmit`                                              |
-| `test`      | Vitest 実行                                                 |
+| `test`      | 単体テスト（Vitest）。DB に接続しない                       |
+| `test:db`   | DB に接続するテスト。ローカルの Supabase が必要             |
+| `db:generate` | スキーマの差分からマイグレーションを生成                  |
+| `db:migrate`  | `.env.local` の DB にマイグレーションを適用               |
+| `db:migrate:test` | テスト用 DB にマイグレーションを適用                  |
+| `db:studio` | Drizzle Studio で DB を閲覧                                 |
 
 `lint` は検査だけを行います。自動修正したいときは `format` を使います。
+
+## DB に接続するテスト
+
+クエリが正しく絞り込んでいるか（他人の記事が混ざらない、下書きが公開一覧に出ない）は、
+実際に DB へ入れて確かめないと検証できません。そのためのテストを `test` とは分けています。
+
+```bash
+npx supabase start   # 初回はイメージの取得で数分かかります
+npm run test:db
+npx supabase stop    # コンテナが常駐するので、使い終わったら止めます
+```
+
+- テストファイルは `*.db.test.ts` という名前にします。`npm run test` からは除外されます
+- 各テストの前に `auth.users` を `TRUNCATE` するので、テスト間でデータは残りません
+- スキーマの持ち主は Drizzle です。Supabase CLI は環境（Postgres / Auth / Storage）を提供するだけで、`supabase/migrations` は使いません
+- 接続先は `.env.test` に書いてあります。ローカル Supabase の既定値しか含まないため、リポジトリで追跡しています
 
 ## ディレクトリ構成
 
@@ -65,14 +87,20 @@ src/
   components/       # 共有コンポーネント
   db/               # Drizzle スキーマ・クライアント
   lib/
+    dal/            # DB アクセス層。DB を触れるのはここだけ
     supabase/       # Supabase クライアント（browser 用 / server 用）
     ...             # stripe / resend のクライアント初期化
   actions/          # Server Actions
+  test/             # テストの基盤（フィクスチャ・スタブ）
   types/            # 型定義
 public/             # 静的ファイル
 ```
 
 単体テストは対象ファイルの隣に `*.test.ts` として置きます（コロケーション）。
+
+**`@/db` を import できるのは `src/lib/dal` の中だけです。**ページや Server Action から
+DB を直接触ることは ESLint で禁止しています。DAL は「そこを通らないとデータに触れない」
+境界があってはじめて、認可の置き場所として意味を持ちます。
 
 ## 技術スタック
 
@@ -82,8 +110,8 @@ public/             # 静的ファイル
 | UI               | React                                    | 19.2.8     |
 | 言語             | TypeScript                               | 5.9.3      |
 | スタイリング     | Tailwind CSS                             | 4.3.3      |
-| DB / ORM         | Supabase Postgres + Drizzle ORM          | 未導入     |
-| 認証             | Supabase Auth（`@supabase/ssr`）         | 未導入     |
+| DB / ORM         | Supabase Postgres + Drizzle ORM          | 0.45.2     |
+| 認証             | Supabase Auth（`@supabase/ssr`）         | 0.12.4     |
 | ストレージ       | Supabase Storage                         | 未導入     |
 | 決済             | Stripe Checkout（テストモード）          | 未導入     |
 | メール           | Resend                                   | 未導入     |

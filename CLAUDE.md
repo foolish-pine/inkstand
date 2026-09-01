@@ -481,7 +481,7 @@ drizzle/            # マイグレーション出力
 
 ### 現在地
 
-**ステップ4 のサブステップ7（ペイウォール）まで完了。次は 4-8（DAL への集約）。**
+**ステップ4 は完了。次はステップ5（Stripe Checkout）。**
 
 | # | 内容 | 状態 |
 | --- | --- | --- |
@@ -492,7 +492,7 @@ drizzle/            # マイグレーション出力
 | 4-5 | 記事詳細ページと Markdown レンダリング | 完了 |
 | 4-6 | 抜粋の切り出し（純粋関数 ＋ 単体テスト） | 完了（12 ケース。変異 5 種すべて検知） |
 | 4-7 | ペイウォール（サーバー側で本文を切る） | 完了（レスポンスに全文が含まれないことを確認済み） |
-| 4-8 | DAL への集約 | **次にやる** |
+| 4-8 | DAL への集約 | 完了 |
 
 `cacheComponents` について実測した結論:
 
@@ -531,6 +531,15 @@ drizzle/            # マイグレーション出力
 - `/dashboard` が毎回サーバー実行されるのは `createClient()` が `cookies()` を読むから。`npm run build` のルート一覧で `ƒ` と表示される
 - Dynamic API を使わないページで Drizzle のクエリを書くと、結果がビルド時に静的 HTML へ焼き付く（`/cache-test` で実測。`.next/server/app/cache-test.html` に件数が literal で埋まっていた）
 - そのため現時点の `createArticle` に `revalidatePath("/dashboard")` を書いても消す対象が無い（Data Cache も Full Route Cache もエントリ無し、Router Cache は動的セグメントの staleTime が 0）。**キャッシュを入れるステップ4 で改めて置き場所を考える**
+
+### DAL と DB テストについて（ステップ4 で確立した）
+
+- **`@/db` を import できるのは `src/lib/dal` の中だけ。** ESLint の `no-restricted-imports` で強制している。禁止対象は DB クライアントだけで `@/db/schema` は許す（テーブル定義は説明であって、クエリを実行する力を持たない）。対象外はテスト基盤 2 つ（`src/test/fixtures.ts` と `vitest.db.setup.ts`）
+- **DAL のファイルは「認可を誰が持つか」で分ける。** `published-*`（不要）/ `my-*`（関数が `requireUser()` で持つ）/ `signup.ts`（呼び出し側が持つ＝危険なので用途を名前で限定）。**キャッシュできるものは認可が要らず、認可が要るものはキャッシュできない**（`use cache` は「誰が見ても同じ結果」でないと成立しないため）
+- **DB に接続するテストは `npm run test:db`。** `npx supabase start` が必要。ファイル名は `*.db.test.ts`。詳細は README
+- **Vitest では `"use cache"` の変換が走らず `cacheTag()` が落ちる。** `next/cache` をスタブに差し替えて素のクエリを検証する。`requireUser()` も `cookies()` を読めないので `@/lib/current-user` をスタブに差し替え、テストが `signInAs()` で「今は誰か」を指定する。**差し替えているのは認証であって認可ではない**
+- **Vite の `alias` は先に一致したものが使われる。** `"@/"` の総称を個別の差し替えより前に置くと本物が読み込まれる。配列で順序を明示している
+- **Drizzle はドライバのエラーを `DrizzleQueryError` で包む。** `e instanceof postgres.PostgresError` は真にならない。`e.cause` を見る。この判定は DB テストで固定済み
 
 ### 保留している課題
 
