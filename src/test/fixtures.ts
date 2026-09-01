@@ -44,5 +44,9 @@ export async function createTestArticle(overrides: ArticleOverrides) {
     })
     .returning();
 
+  // insert ... returning は必ず 1 行返すが、型の上では undefined を含む。
+  // 嘘をつかずに絞り込むため、実行時に確認する。
+  if (!article) throw new Error("テスト用の記事を作成できませんでした。");
+
   return article;
 }

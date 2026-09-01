@@ -4,7 +4,7 @@ import { db } from "@/db";
 import { articles } from "@/db/schema";
 import { articleTag, latestArticlesTag } from "@/lib/cache-tags";
 
-export const getLatestArticles = async () => {
+export async function getLatestArticles() {
   "use cache";
   cacheTag(latestArticlesTag);
 
@@ -19,9 +19,9 @@ export const getLatestArticles = async () => {
     .where(eq(articles.status, "published"))
     .orderBy(desc(articles.publishedAt))
     .limit(20);
-};
+}
 
-export const getPublishedArticle = async (id: string) => {
+export async function getPublishedArticle(id: string) {
   "use cache";
   cacheTag(articleTag(id));
 
@@ -37,4 +37,4 @@ export const getPublishedArticle = async (id: string) => {
     .where(and(eq(articles.id, id), eq(articles.status, "published")));
 
   return article;
-};
+}

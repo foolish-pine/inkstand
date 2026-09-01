@@ -5,6 +5,10 @@
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
+    // 配列やインデックスアクセスの結果に undefined を含める。
+    // これが無いと const [row] = await db.select() の型が「必ずある」ことになり、
+    // null チェックの書き忘れをコンパイラが見逃す。
+    "noUncheckedIndexedAccess": true,
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
