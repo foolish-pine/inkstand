@@ -9,14 +9,23 @@ const nextSequence = () => ++sequence;
 
 // auth.users は Supabase の管理領域で、Drizzle のスキーマには id しか宣言していない。
 // テストで認証を通すわけではないので、外部キーを満たす行だけを直接入れる。
+// プロフィールの作成そのものをテストしたい場合はこちらを使う。
+export async function createTestAuthUser(): Promise<string> {
+  const userId = crypto.randomUUID();
+
+  await db.execute(sql`INSERT INTO auth.users (id) VALUES (${userId})`);
+
+  return userId;
+}
+
+// 認証ユーザーとプロフィールをまとめて作る。ほとんどのテストはこちらでよい。
 export async function createTestUser(): Promise<{
   userId: string;
   username: string;
 }> {
-  const userId = crypto.randomUUID();
+  const userId = await createTestAuthUser();
   const username = `tester${nextSequence()}`;
 
-  await db.execute(sql`INSERT INTO auth.users (id) VALUES (${userId})`);
   await db.insert(profiles).values({
     id: userId,
     username,
