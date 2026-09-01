@@ -1,14 +1,15 @@
 "use server";
 
-import { eq, sql } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import z from "zod";
 import { signInSchema } from "./auth/sign-in-schema";
 import { signUpSchema } from "./auth/sign-up-schema";
 import { getString } from "./form-data";
-import { db } from "@/db";
-import { profiles } from "@/db/schema";
-import { createProfile, DuplicatedUsernameError } from "@/lib/dal/signup";
+import {
+  createProfile,
+  DuplicatedUsernameError,
+  isUsernameTaken,
+} from "@/lib/dal/signup";
 import { createClient } from "@/lib/supabase/server";
 
 export type SignUpFormState = {
@@ -43,19 +44,7 @@ export async function signUp(
 
   const { email, password, username } = validated.data;
 
-  const [existingProfile] = await db
-    .select({
-      id: profiles.id,
-    })
-    .from(profiles)
-    .where(
-      eq(
-        sql<string>`lower(${profiles.username})`,
-        sql<string>`lower(${username})`,
-      ),
-    );
-
-  if (existingProfile)
+  if (await isUsernameTaken(username))
     return {
       defaultValues,
       formErrors: [],

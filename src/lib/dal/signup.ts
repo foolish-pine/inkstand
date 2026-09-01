@@ -1,3 +1,4 @@
+import { eq, sql } from "drizzle-orm";
 import { DrizzleQueryError } from "drizzle-orm/errors";
 import postgres from "postgres";
 import { db } from "@/db";
@@ -8,6 +9,22 @@ export class DuplicatedUsernameError extends Error {
     super("This username has already been registered.", options);
     this.name = "DuplicatedUsernameError";
   }
+}
+
+export async function isUsernameTaken(username: string) {
+  const [profile] = await db
+    .select({
+      id: profiles.id,
+    })
+    .from(profiles)
+    .where(
+      eq(
+        sql<string>`lower(${profiles.username})`,
+        sql<string>`lower(${username})`,
+      ),
+    );
+
+  return profile !== undefined;
 }
 
 export async function createProfile(userId: string, username: string) {
