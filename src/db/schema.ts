@@ -10,6 +10,7 @@ import {
   uniqueIndex,
   pgEnum,
   check,
+  unique,
 } from "drizzle-orm/pg-core";
 import { nanoid } from "nanoid";
 
@@ -73,6 +74,29 @@ export const articles = pgTable(
     check(
       "paid_body_min_length",
       sql`${t.price} = 0 OR char_length(${t.body}) >= ${sql.raw(String(PAID_ARTICLE_BODY_MIN_LENGTH))}`,
+    ),
+  ],
+);
+
+export const purchases = pgTable(
+  "purchases",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    buyerId: uuid()
+      .notNull()
+      .references(() => profiles.id),
+    articleId: varchar({ length: 21 })
+      .notNull()
+      .references(() => articles.id),
+    paymentAmount: integer().notNull(),
+    stripePaymentIntentId: text().notNull(),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    check("payment_amount_positive", sql`${t.paymentAmount} > 0`),
+    unique("purchases_buyer_id_and_article_id_unique").on(
+      t.buyerId,
+      t.articleId,
     ),
   ],
 );
