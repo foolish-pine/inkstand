@@ -1,12 +1,9 @@
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as schema from "./schema";
+import { requireEnv } from "@/lib/require-env";
 
-const dbUrl = process.env.DATABASE_URL;
-
-if (!dbUrl) {
-  throw new Error("DATABASE_URL is not defined.");
-}
+const dbUrl = requireEnv(process.env.DATABASE_URL, "DATABASE_URL");
 
 const globalForDb = globalThis as unknown as { conn?: postgres.Sql };
 
