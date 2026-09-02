@@ -3,8 +3,11 @@ import { Suspense } from "react";
 import Markdown from "react-markdown";
 import rehypeSanitize from "rehype-sanitize";
 import remarkGfm from "remark-gfm";
+import { canPurchase } from "./can-purchase";
 import { buildExcerpt } from "./excerpt";
+import { getCurrentUser } from "@/lib/current-user";
 import { getPublishedArticle } from "@/lib/dal/published-articles";
+import { hasUserPurchasedArticle } from "@/lib/dal/user-purchases";
 import { publishedAtFormatter } from "@/lib/published-at-formatter";
 
 async function ArticleContent({
@@ -48,19 +51,94 @@ async function ArticleContent({
         )}
       </div>
       {!isFree && (
-        <div className="border-rule mt-10 border p-10 text-center">
-          <p className="font-display text-lg tracking-wide">
-            ここから先は有料です
-          </p>
-          <p className="text-muted mt-3 text-sm">
-            続きを読むには記事の購入が必要です。
-          </p>
-          <p className="mt-8 text-3xl tabular-nums">
-            ¥{article.price.toLocaleString("ja-JP")}
-          </p>
-        </div>
+        <Suspense fallback={<PaywallSkeleton />}>
+          <Paywall
+            articleId={article.id}
+            authorId={article.authorId}
+            price={article.price}
+          />
+        </Suspense>
       )}
     </>
+  );
+}
+
+async function Paywall({
+  articleId,
+  authorId,
+  price,
+}: {
+  articleId: string;
+  authorId: string;
+  price: number;
+}) {
+  const user = await getCurrentUser();
+
+  if (!user)
+    return (
+      <PaywallContent
+        message="続きを読むにはログインと記事の購入が必要です。"
+        price={price}
+      />
+    );
+
+  if (
+    canPurchase({
+      userId: user.id,
+      authorId,
+      price,
+      hasUserPurchased: await hasUserPurchasedArticle({
+        userId: user.id,
+        articleId,
+      }),
+    })
+  )
+    return (
+      <PaywallContent
+        message="続きを読むには記事の購入が必要です。"
+        price={price}
+      />
+    );
+
+  return null;
+}
+
+// 枠線は本番と同じものをそのまま出し、中の 3 行だけを棒に置き換える。
+// 外側の余白（mt-10 p-10）と行の高さ（28 / 20 / 36px）と行間（mt-3 mt-8）を
+// Paywall と一致させてあるので、中身が届いても高さが変わらない。
+function PaywallSkeleton() {
+  return (
+    <div className="border-rule mt-10 border p-10 text-center">
+      <div className="animate-pulse" aria-hidden>
+        <div className="flex h-7 items-center justify-center">
+          <div className="bg-rule h-4 w-48" />
+        </div>
+        <div className="mt-3 flex h-5 items-center justify-center">
+          <div className="bg-rule h-3 w-64" />
+        </div>
+        <div className="mt-8 flex h-9 items-center justify-center">
+          <div className="bg-rule h-6 w-28" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PaywallContent({
+  message,
+  price,
+}: {
+  message: string;
+  price: number;
+}) {
+  return (
+    <div className="border-rule mt-10 border p-10 text-center">
+      <p className="font-display text-lg tracking-wide">ここから先は有料です</p>
+      <p className="text-muted mt-3 text-sm">{message}</p>
+      <p className="mt-8 text-3xl tabular-nums">
+        ¥{price.toLocaleString("ja-JP")}
+      </p>
+    </div>
   );
 }
 

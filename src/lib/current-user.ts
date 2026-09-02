@@ -11,7 +11,7 @@ async function fetchCurrentUser() {
   return user;
 }
 
-const getCurrentUser = cache(fetchCurrentUser);
+export const getCurrentUser = cache(fetchCurrentUser);
 
 export async function requireUser() {
   const user = await getCurrentUser();

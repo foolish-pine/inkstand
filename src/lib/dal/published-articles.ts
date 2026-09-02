@@ -28,8 +28,10 @@ export async function getPublishedArticle(id: string) {
   const [article] = await db
     .select({
       id: articles.id,
+      authorId: articles.authorId,
       title: articles.title,
       body: articles.body,
+      status: articles.status,
       price: articles.price,
       publishedAt: articles.publishedAt,
     })
