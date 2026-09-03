@@ -1,13 +1,14 @@
 import { notFound } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, type ReactNode } from "react";
 import Markdown from "react-markdown";
 import rehypeSanitize from "rehype-sanitize";
 import remarkGfm from "remark-gfm";
 import { canPurchase } from "./can-purchase";
 import { buildExcerpt } from "./excerpt";
+import { createCheckout } from "@/actions/checkout";
 import { getCurrentUser } from "@/lib/current-user";
+import { hasUserPurchasedArticle } from "@/lib/dal/checkout";
 import { getPublishedArticle } from "@/lib/dal/published-articles";
-import { hasUserPurchasedArticle } from "@/lib/dal/user-purchases";
 import { publishedAtFormatter } from "@/lib/published-at-formatter";
 
 async function ArticleContent({
@@ -97,15 +98,27 @@ async function Paywall({
       <PaywallContent
         message="続きを読むには記事の購入が必要です。"
         price={price}
+        action={
+          <form action={createCheckout}>
+            <input type="hidden" name="articleId" defaultValue={articleId} />
+            <button
+              type="submit"
+              className="bg-foreground text-background focus-visible:outline-accent cursor-pointer px-10 py-3 text-sm tracking-wider transition-opacity hover:opacity-85 focus-visible:outline-2 focus-visible:outline-offset-2"
+            >
+              購入する
+            </button>
+          </form>
+        }
       />
     );
 
   return null;
 }
 
-// 枠線は本番と同じものをそのまま出し、中の 3 行だけを棒に置き換える。
-// 外側の余白（mt-10 p-10）と行の高さ（28 / 20 / 36px）と行間（mt-3 mt-8）を
-// Paywall と一致させてあるので、中身が届いても高さが変わらない。
+// 枠線は本番と同じものをそのまま出し、中の 4 行だけを棒に置き換える。
+// 外側の余白（mt-10 p-10）と行の高さ（28 / 20 / 36 / 44px）と行間（mt-3 mt-8）を
+// 購入ボタンありの Paywall と一致させてあるので、中身が届いても高さが変わらない。
+// 未ログインのときはボタンが無いぶん実物が 76px 低くなる。
 function PaywallSkeleton() {
   return (
     <div className="border-rule mt-10 border p-10 text-center">
@@ -119,6 +132,9 @@ function PaywallSkeleton() {
         <div className="mt-8 flex h-9 items-center justify-center">
           <div className="bg-rule h-6 w-28" />
         </div>
+        <div className="mt-8 flex justify-center">
+          <div className="bg-rule h-11 w-40" />
+        </div>
       </div>
     </div>
   );
@@ -127,9 +143,11 @@ function PaywallSkeleton() {
 function PaywallContent({
   message,
   price,
+  action,
 }: {
   message: string;
   price: number;
+  action?: ReactNode;
 }) {
   return (
     <div className="border-rule mt-10 border p-10 text-center">
@@ -138,6 +156,7 @@ function PaywallContent({
       <p className="mt-8 text-3xl tabular-nums">
         ¥{price.toLocaleString("ja-JP")}
       </p>
+      {action && <div className="mt-8 flex justify-center">{action}</div>}
     </div>
   );
 }
