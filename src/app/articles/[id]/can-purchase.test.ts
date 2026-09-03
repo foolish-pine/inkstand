@@ -6,7 +6,7 @@ describe("canPurchase", () => {
     userId: "user-1",
     authorId: "user-2",
     price: 1000,
-    hasUserPurchased: false,
+    hasPurchased: false,
   };
 
   it("記事が有料かつ自身がその記事の著者でないかつその記事を未購入のとき、true を返す", () => {
@@ -31,7 +31,7 @@ describe("canPurchase", () => {
       "その記事を購入済み",
       {
         ...validInput,
-        hasUserPurchased: true,
+        hasPurchased: true,
       },
     ],
   ])("%sのとき、false を返す", (_reason, input) => {

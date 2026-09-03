@@ -7,7 +7,7 @@ import { canPurchase } from "./can-purchase";
 import { buildExcerpt } from "./excerpt";
 import { createCheckout } from "@/actions/checkout";
 import { getCurrentUser } from "@/lib/current-user";
-import { hasUserPurchasedArticle } from "@/lib/dal/checkout";
+import { hasPurchasedArticle } from "@/lib/dal/my-purchases";
 import { getPublishedArticle } from "@/lib/dal/published-articles";
 import { publishedAtFormatter } from "@/lib/published-at-formatter";
 
@@ -88,10 +88,7 @@ async function Paywall({
       userId: user.id,
       authorId,
       price,
-      hasUserPurchased: await hasUserPurchasedArticle({
-        userId: user.id,
-        articleId,
-      }),
+      hasPurchased: await hasPurchasedArticle(articleId),
     })
   )
     return (
