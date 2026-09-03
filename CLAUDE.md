@@ -481,7 +481,29 @@ drizzle/            # マイグレーション出力
 
 ### 現在地
 
-**ステップ4 は完了。次はステップ5（Stripe Checkout）。**
+**ステップ5 に着手中。5-4 まで完了、次は 5-5（成功 / キャンセルの戻り先ページ）。**
+
+| # | 内容 | 状態 |
+| --- | --- | --- |
+| 5-1 | purchases テーブルの設計とマイグレーション | 完了 |
+| 5-2 | Stripe の準備（テストキー・Stripe CLI・環境変数） | 完了 |
+| 5-3 | 購入ボタンの表示判定 | 完了（`canPurchase` は変異 6 種中 5 種を検知。残る 1 種は負の価格で、DB の check 制約が防ぐ） |
+| 5-4 | Checkout Session を作る Server Action | 完了（テストカードで Stripe の決済画面まで確認済み） |
+| 5-5 | 成功 / キャンセルの戻り先ページ | 未着手 |
+| 5-6 | 購入された記事を削除しようとしたときの扱い | 未着手 |
+
+ステップ5 で決めたこと:
+
+- **金額の正は DB。** フォームから来るのは `articleId` だけで、`unit_amount` は Action 内で引き直した `articles.price` を使う
+- **`metadata` は Checkout Session のトップレベルに置く。** `price_data.product_data.metadata` は Product に付くもので、`checkout.session.completed` のペイロードには現れない（`line_items` 自体が含まれないため）。ステップ6 で買い手と記事を特定できなくなる
+- **`managed_payments: { enabled: false }` は省略できない**（省略するとエラーになる）。既定値を明示しているように見えるのでコメントを残してある
+- **`APP_URL` に `NEXT_PUBLIC_` は付けない。** `success_url` / `cancel_url` の組み立てにしか使わず、ブラウザでは読まない
+- **`canPurchase` は純粋関数**（`src/app/articles/[id]/can-purchase.ts`）。購入済みかを引数で受け取る。DB アクセスと混ぜるとモックだらけになり実装の写経になるため
+- **Paywall は独立した `<Suspense>` に置く。** 記事本文と同じ境界に入れると、本文の表示が `getCurrentUser()` の HTTP 往復と購入クエリを待ち、`use cache` がヒットしても毎回止まる
+- **DAL のファイルは用途でも括る。** `src/lib/dal/checkout.ts` は「Checkout を開始してよいか判断するための材料」を集める。ここの記事クエリは**キャッシュしてはいけない**（金額の正を取りに行くので、古い値だと値上げ直後に旧価格で決済される）
+- **記事 ID に zod を掛けていない。** 引き当てそのものが検証を兼ねており（`updateMyArticle` / `deleteMyArticle` は所有権まで同時に確認する）、形式チェックを前に置いても強くならない。不正な ID は行が 0 件になって `notFound()` に落ちる。判断の根拠は「外部入力を**根拠に判断していない**」こと。`articleFormSchema` の対象は保存される値なので事情が違う
+
+### ステップ4 の記録
 
 | # | 内容 | 状態 |
 | --- | --- | --- |
@@ -554,6 +576,7 @@ drizzle/            # マイグレーション出力
    - `instant = false` は `allowEmptyStaticShell` の計算にしか使われず（`app-render.js:3942`）、**ナビゲーション検証は免除しない**
    - 対処するなら認証の構造から。`requireUser()` を `<Suspense>` に入れる（未ログイン時に枠が一瞬見える）／`<Link prefetch={false}>`／`experimental.staleTimes` のいずれか
 5. **`requireUser()` がリクエストごとに Supabase へ HTTP 往復している。** Cookie を読むだけの処理ではない。`supabase.auth.getUser()` は Auth サーバーに問い合わせる。React の `cache()` で 1 リクエスト 1 回には畳んであるが、往復自体は残る
+6. **拒否した理由がサーバー側にも残らない**（2026-09-03 に発見）。`createCheckout` は「記事が無い」と「あるが買えない（自分の記事・購入済み・無料）」の両方を `notFound()` で返す。画面に同じ答えを返すのは正しい（記事 ID の存在有無を漏らさない）が、ログにも区別が残らないため、購入できないという問い合わせが来ても原因を追えない。**画面の答えは 404 のまま、サーバーのログにだけ理由を残す**のが対処。同じ形は `updateArticle` / `deleteArticle` にもある
 
 ### 決まっている方針
 
