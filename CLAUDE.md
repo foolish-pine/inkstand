@@ -583,6 +583,11 @@ drizzle/            # マイグレーション出力
    - 対処するなら認証の構造から。`requireUser()` を `<Suspense>` に入れる（未ログイン時に枠が一瞬見える）／`<Link prefetch={false}>`／`experimental.staleTimes` のいずれか
 5. **`requireUser()` がリクエストごとに Supabase へ HTTP 往復している。** Cookie を読むだけの処理ではない。`supabase.auth.getUser()` は Auth サーバーに問い合わせる。React の `cache()` で 1 リクエスト 1 回には畳んであるが、往復自体は残る
 6. **拒否した理由がサーバー側にも残らない**（2026-09-03 に発見）。`createCheckout` は「記事が無い」と「あるが買えない（自分の記事・購入済み・無料）」の両方を `notFound()` で返す。画面に同じ答えを返すのは正しい（記事 ID の存在有無を漏らさない）が、ログにも区別が残らないため、購入できないという問い合わせが来ても原因を追えない。**画面の答えは 404 のまま、サーバーのログにだけ理由を残す**のが対処。同じ形は `updateArticle` / `deleteArticle` にもある
+7. **著者が売った記事を引っ込める手段が無い**（2026-09-03 に発見）。購入行がある記事は外部キーで削除できず（それが正しい）、`status` を `draft` に戻すと `getPublishedArticle` / `getLatestArticles` の `where` に引っかかって**購入者まで 404 になる**。つまり「販売は止めたいが購入者には読ませ続ける」ができない。必要なのは「一覧には出ないが URL は生きていて、購入者は読める」状態で、次がセットになる
+   - `articles` に状態を 1 つ増やす（`status` の値を足すか、別の列にするか）
+   - `getLatestArticles` の条件を変える。詳細ページの URL は生かす
+   - `canPurchase` に「新規購入を止める」条件が増える
+   - `status` の列挙値を増やす形にすると `published_requires_date` の check 制約と `articleFormSchema` にも波及する
 
 ### 決まっている方針
 
