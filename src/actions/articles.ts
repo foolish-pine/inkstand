@@ -7,6 +7,7 @@ import { articleFormSchema } from "./articles/article-form-schema";
 import { getString } from "./form-data";
 import { latestArticlesTag, articleTag } from "@/lib/cache-tags";
 import {
+  ArticleHasPurchasesError,
   createMyArticle,
   deleteMyArticle,
   updateMyArticle,
@@ -100,10 +101,31 @@ export async function updateArticle(
   redirect("/dashboard");
 }
 
-export async function deleteArticle(formData: FormData): Promise<void> {
+export type DeleteArticleFormState = {
+  formErrors: string[];
+};
+
+export async function deleteArticle(
+  prevState: DeleteArticleFormState,
+  formData: FormData,
+): Promise<DeleteArticleFormState> {
   const articleId = getString(formData, "articleId");
 
-  const article = await deleteMyArticle(articleId);
+  // try の中は DAL の 1 行だけにする。notFound() と redirect() は例外を投げて
+  // 制御するので、catch の範囲に入れると条件を広げたときに飲み込んでしまう。
+  // そのために const ではなく let で受けている。
+  let article: Awaited<ReturnType<typeof deleteMyArticle>>;
+  try {
+    article = await deleteMyArticle(articleId);
+  } catch (e) {
+    if (e instanceof ArticleHasPurchasesError) {
+      return {
+        formErrors: ["購入された記事は削除できません。"],
+      };
+    }
+
+    throw e;
+  }
 
   if (!article) notFound();
 
