@@ -4,7 +4,7 @@ export function canPurchase({
   price,
   hasPurchased,
 }: {
-  userId: string;
+  userId: string | null; // 未ログインの閲覧者。ログインすれば買えるので 返り値は true になる。
   authorId: string;
   price: number;
   hasPurchased: boolean;

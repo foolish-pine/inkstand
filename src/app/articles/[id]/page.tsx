@@ -21,7 +21,6 @@ async function ArticleContent({
 
   const isFree = article.price === 0;
   const excerpt = buildExcerpt(article.body);
-  const bodyToRender = isFree ? article.body : excerpt.text;
 
   return (
     <>
@@ -36,21 +35,15 @@ async function ArticleContent({
           {publishedAtFormatter.format(article.publishedAt)}
         </time>
       )}
-      <div className="border-rule relative mt-10 border-t pt-10">
-        <div className="article-body">
-          <Markdown
-            rehypePlugins={[rehypeSanitize]}
-            remarkPlugins={[remarkGfm]}
-          >
-            {bodyToRender}
-          </Markdown>
-        </div>
-        {/* 抜粋の末尾が唐突に切れて見えないよう、下端を背景色へ溶かす。
-            隠しているのはサーバー側なので、これは見た目だけの処理。 */}
-        {!isFree && (
-          <div className="from-background pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-linear-to-t to-transparent" />
-        )}
-      </div>
+      <Suspense fallback={<ArticleExcerptBody excerptText={excerpt.text} />}>
+        <ArticleBody
+          articleBody={article.body}
+          excerptText={excerpt.text}
+          articleId={article.id}
+          authorId={article.authorId}
+          price={article.price}
+        />
+      </Suspense>
       {!isFree && (
         <Suspense fallback={<PaywallSkeleton />}>
           <Paywall
@@ -61,6 +54,56 @@ async function ArticleContent({
         </Suspense>
       )}
     </>
+  );
+}
+
+async function ArticleBody({
+  articleBody,
+  excerptText,
+  articleId,
+  authorId,
+  price,
+}: {
+  articleBody: string;
+  excerptText: string;
+  articleId: string;
+  authorId: string;
+  price: number;
+}) {
+  const user = await getCurrentUser();
+  const userId = user?.id ?? null;
+  const canViewFullBody = !canPurchase({
+    userId,
+    authorId,
+    price,
+    hasPurchased: await hasPurchasedArticle(articleId),
+  });
+
+  if (!canViewFullBody) return <ArticleExcerptBody excerptText={excerptText} />;
+
+  return (
+    <div className="border-rule relative mt-10 border-t pt-10">
+      <div className="article-body">
+        <Markdown rehypePlugins={[rehypeSanitize]} remarkPlugins={[remarkGfm]}>
+          {articleBody}
+        </Markdown>
+      </div>
+    </div>
+  );
+}
+
+function ArticleExcerptBody({ excerptText }: { excerptText: string }) {
+  return (
+    <div className="border-rule relative mt-10 border-t pt-10">
+      <div className="article-body">
+        <Markdown rehypePlugins={[rehypeSanitize]} remarkPlugins={[remarkGfm]}>
+          {excerptText}
+        </Markdown>
+      </div>
+      {/* 抜粋の末尾が唐突に切れて見えないよう、下端を背景色へ溶かす。
+          隠しているのはサーバー側なので、これは見た目だけの処理。 */}
+      <div className="from-background pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-linear-to-t to-transparent" />
+    </div>
   );
 }
 

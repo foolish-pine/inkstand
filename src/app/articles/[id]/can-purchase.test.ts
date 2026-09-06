@@ -12,6 +12,9 @@ describe("canPurchase", () => {
   it("記事が有料かつ自身がその記事の著者でないかつその記事を未購入のとき、true を返す", () => {
     expect(canPurchase(validInput)).toBe(true);
   });
+  it("未ログイン（userId が null）で記事が有料のとき、true を返す", () => {
+    expect(canPurchase({ ...validInput, userId: null })).toBe(true);
+  });
   it.each([
     [
       "記事が無料",
