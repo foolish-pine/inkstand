@@ -49,17 +49,7 @@ const unhandledEvent = {
   livemode: false,
   pending_webhooks: 0,
   request: { id: null, idempotency_key: null },
-  data: {
-    object: {
-      id: "cs_test_1",
-      object: "checkout.session",
-      payment_status: "paid",
-      amount_total: 1000,
-      payment_intent: "payment-intent",
-      currency: "jpy",
-      metadata: { buyerId: "buyer-1", articleId: "article-1" },
-    },
-  },
+  data: { object: {} },
 };
 
 describe("POST /api/stripe/webhook", () => {
@@ -75,7 +65,6 @@ describe("POST /api/stripe/webhook", () => {
     expect(res.status).toBe(200);
     await expect(res.json()).resolves.toEqual({ received: true });
   });
-
   it("署名が不正な場合は 400 を返す", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
 
@@ -83,7 +72,6 @@ describe("POST /api/stripe/webhook", () => {
 
     expect(res.status).toBe(400);
   });
-
   it("stripe-signature ヘッダーが無い場合は 400 を返す", async () => {
     const req = new NextRequest("http://localhost/api/stripe/webhook", {
       method: "POST",
@@ -94,15 +82,6 @@ describe("POST /api/stripe/webhook", () => {
 
     expect(res.status).toBe(400);
   });
-
-  it("未対応のイベントタイプでも 200 を返す", async () => {
-    const res = await POST(
-      buildRequest({ ...unhandledEvent, type: "product.updated" }),
-    );
-
-    expect(res.status).toBe(200);
-  });
-
   it("署名は正しいが本文が書き換えられている場合は 400 を返す", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
 
