@@ -1,6 +1,11 @@
-import { sql } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { articles, PAID_ARTICLE_BODY_MIN_LENGTH, profiles } from "@/db/schema";
+import {
+  articles,
+  PAID_ARTICLE_BODY_MIN_LENGTH,
+  profiles,
+  purchases,
+} from "@/db/schema";
 
 // テストごとに一意な値を作るための連番。TRUNCATE で消えるのはデータだけなので、
 // 実行中は増え続けてよい。
@@ -58,4 +63,19 @@ export async function createTestArticle(overrides: ArticleOverrides) {
   if (!article) throw new Error("テスト用の記事を作成できませんでした。");
 
   return article;
+}
+
+export async function getTestPurchase({
+  buyerId,
+  articleId,
+}: {
+  buyerId: string;
+  articleId: string;
+}) {
+  return await db
+    .select()
+    .from(purchases)
+    .where(
+      and(eq(purchases.buyerId, buyerId), eq(purchases.articleId, articleId)),
+    );
 }
