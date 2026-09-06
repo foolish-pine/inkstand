@@ -10,7 +10,7 @@ describe("getMyProfile", () => {
     signInAs(myId);
     const result = await getMyProfile();
 
-    expect(result?.id).toStrictEqual(myId);
+    expect(result?.id).toBe(myId);
   });
   it("プロフィールが無ければ undefined", async () => {
     await createTestUser();

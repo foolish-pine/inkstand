@@ -33,9 +33,9 @@ describe("createProfile", () => {
     const username = "username";
     const result = await createProfile(userId, username);
 
-    expect(result?.id).toStrictEqual(userId);
-    expect(result?.username).toStrictEqual(username);
-    expect(result?.displayName).toStrictEqual(username);
+    expect(result?.id).toBe(userId);
+    expect(result?.username).toBe(username);
+    expect(result?.displayName).toBe(username);
   });
   it("username が既存のものと重複する場合、DuplicatedUsernameError が投げられる", async () => {
     const userId = await createTestAuthUser();

@@ -50,7 +50,7 @@ describe("getMyArticle", () => {
     signInAs(myId);
     const result = await getMyArticle(myArticle.id);
 
-    expect(result?.id).toStrictEqual(myArticle.id);
+    expect(result?.id).toBe(myArticle.id);
   });
   it("他人の記事は取得できない", async () => {
     const { userId: myId } = await createTestUser();
@@ -84,7 +84,7 @@ describe("createMyArticle", () => {
     signInAs(userId);
     const result = await createMyArticle(values);
 
-    expect(result?.authorId).toStrictEqual(userId);
+    expect(result?.authorId).toBe(userId);
   });
   it("下書きの記事は publishedAt が null になる", async () => {
     const { userId } = await createTestUser();
