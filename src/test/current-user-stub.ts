@@ -9,30 +9,51 @@ import type { User } from "@supabase/supabase-js";
 //
 // vitest.db.config.mts で @/lib/current-user をこのファイルに向けている。
 
-let currentUserId: string | null = null;
+type CurrentUser =
+  | { type: "unset" }
+  | { type: "anonymous" }
+  | { type: "signedIn"; userId: string };
+
+let currentUser: CurrentUser = { type: "unset" };
 
 export function signInAs(userId: string) {
-  currentUserId = userId;
+  currentUser = { type: "signedIn", userId };
+}
+
+export function signOut() {
+  currentUser = { type: "anonymous" };
 }
 
 // 各テストの前に呼ぶ。指定を忘れたテストが、前のテストのユーザーで
 // 走ってしまうのを防ぐ。
 export function resetCurrentUser() {
-  currentUserId = null;
+  currentUser = { type: "unset" };
 }
 
-export async function requireUser(): Promise<User> {
-  if (!currentUserId) {
+export async function getCurrentUser(): Promise<User | null> {
+  if (currentUser.type === "unset") {
     throw new Error(
-      "signInAs() が呼ばれていません。誰としてアクセスするかを指定してください。",
+      "signInAs() または signOut() が呼ばれていません。誰としてアクセスするかを指定してください。",
     );
   }
 
+  if (currentUser.type === "anonymous") return null;
+
   return {
-    id: currentUserId,
+    id: currentUser.userId,
     app_metadata: {},
     user_metadata: {},
     aud: "authenticated",
     created_at: new Date(0).toISOString(),
   };
+}
+
+export async function requireUser(): Promise<User> {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    throw new Error("未ログインです。実際は /login へリダイレクトします。");
+  }
+
+  return user;
 }
