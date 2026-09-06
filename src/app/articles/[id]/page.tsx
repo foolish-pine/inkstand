@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
 import Markdown from "react-markdown";
@@ -6,6 +7,7 @@ import remarkGfm from "remark-gfm";
 import { canPurchase } from "./can-purchase";
 import { buildExcerpt } from "./excerpt";
 import { createCheckout } from "@/actions/checkout";
+import { SiteHeader } from "@/components/site-header";
 import { getCurrentUser } from "@/lib/current-user";
 import { hasPurchasedArticle } from "@/lib/dal/my-purchases";
 import { getPublishedArticle } from "@/lib/dal/published-articles";
@@ -123,6 +125,14 @@ async function Paywall({
       <PaywallContent
         message="続きを読むにはログインと記事の購入が必要です。"
         price={price}
+        action={
+          <Link
+            href="/login"
+            className="bg-foreground text-background focus-visible:outline-accent inline-block px-10 py-3 text-sm tracking-wider transition-opacity hover:opacity-85 focus-visible:outline-2 focus-visible:outline-offset-2"
+          >
+            ログイン
+          </Link>
+        }
       />
     );
 
@@ -157,8 +167,8 @@ async function Paywall({
 
 // 枠線は本番と同じものをそのまま出し、中の 4 行だけを棒に置き換える。
 // 外側の余白（mt-10 p-10）と行の高さ（28 / 20 / 36 / 44px）と行間（mt-3 mt-8）を
-// 購入ボタンありの Paywall と一致させてあるので、中身が届いても高さが変わらない。
-// 未ログインのときはボタンが無いぶん実物が 76px 低くなる。
+// Paywall と一致させてあるので、中身が届いても高さが変わらない。未ログインには
+// ログインへのリンク、購入できる人には購入ボタンが同じ位置に入る。
 function PaywallSkeleton() {
   return (
     <div className="border-rule mt-10 border p-10 text-center">
@@ -220,10 +230,13 @@ function ArticleSkeleton() {
 
 export default function Article({ params }: PageProps<"/articles/[id]">) {
   return (
-    <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-16">
-      <Suspense fallback={<ArticleSkeleton />}>
-        <ArticleContent params={params} />
-      </Suspense>
-    </main>
+    <>
+      <SiteHeader />
+      <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-16">
+        <Suspense fallback={<ArticleSkeleton />}>
+          <ArticleContent params={params} />
+        </Suspense>
+      </main>
+    </>
   );
 }

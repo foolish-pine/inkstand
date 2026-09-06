@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { PurchaseStatus, PurchaseStatusPending } from "./purchase-status";
+import { SiteHeader } from "@/components/site-header";
 import { requireUser } from "@/lib/current-user";
 import { stripe } from "@/lib/stripe";
 
@@ -29,12 +30,15 @@ async function SuccessContent({
 
 export default function Success({ searchParams }: PageProps<"/success">) {
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-6 py-16">
-      <div className="border-rule border p-10 text-center">
-        <Suspense fallback={<PurchaseStatusPending />}>
-          <SuccessContent searchParams={searchParams} />
-        </Suspense>
-      </div>
-    </main>
+    <>
+      <SiteHeader />
+      <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-6 py-16">
+        <div className="border-rule border p-10 text-center">
+          <Suspense fallback={<PurchaseStatusPending />}>
+            <SuccessContent searchParams={searchParams} />
+          </Suspense>
+        </div>
+      </main>
+    </>
   );
 }
