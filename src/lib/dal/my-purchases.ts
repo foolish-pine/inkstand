@@ -1,10 +1,13 @@
 import { and, eq } from "drizzle-orm";
+import { cache } from "react";
 import { db } from "@/db";
 import { purchases } from "@/db/schema";
-import { requireUser } from "@/lib/current-user";
+import { getCurrentUser } from "@/lib/current-user";
 
-export async function hasPurchasedArticle(articleId: string) {
-  const user = await requireUser();
+async function fetchHasPurchasedArticle(articleId: string) {
+  const user = await getCurrentUser();
+
+  if (!user) return false;
 
   const [purchase] = await db
     .select({
@@ -17,3 +20,5 @@ export async function hasPurchasedArticle(articleId: string) {
 
   return purchase !== undefined;
 }
+
+export const hasPurchasedArticle = cache(fetchHasPurchasedArticle);

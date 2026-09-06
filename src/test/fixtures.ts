@@ -65,6 +65,26 @@ export async function createTestArticle(overrides: ArticleOverrides) {
   return article;
 }
 
+type PurchaseOverrides = Partial<typeof purchases.$inferInsert> & {
+  articleId: string;
+  buyerId: string;
+};
+
+export async function createTestPurchase(overrides: PurchaseOverrides) {
+  const [purchase] = await db
+    .insert(purchases)
+    .values({
+      paymentAmount: 1000,
+      stripePaymentIntentId: "stripe-payment-id",
+      ...overrides,
+    })
+    .returning();
+
+  if (!purchase) throw new Error("テスト用の購入を作成できませんでした。");
+
+  return purchase;
+}
+
 export async function getTestPurchase({
   buyerId,
   articleId,
