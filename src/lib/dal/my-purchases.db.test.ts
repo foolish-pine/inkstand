@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { hasPurchasedArticle } from "./my-purchases";
+import { getMyPurchases, hasPurchasedArticle } from "./my-purchases";
 import { signInAs, signOut } from "@/test/current-user-stub";
 import {
   createTestArticle,
@@ -56,5 +56,86 @@ describe("hasPurchasedArticle", () => {
     const result = await hasPurchasedArticle(article.id);
 
     expect(result).toBe(false);
+  });
+});
+
+describe("getMyPurchases", () => {
+  it("自分の purchases のみ取得できる", async () => {
+    const { userId: myId } = await createTestUser();
+    const { userId: otherId } = await createTestUser();
+    const { userId: authorId } = await createTestUser();
+    signInAs(myId);
+    const article1 = await createTestArticle({ authorId });
+    const article2 = await createTestArticle({ authorId });
+    const myPurchase = await createTestPurchase({
+      buyerId: myId,
+      articleId: article1.id,
+    });
+    await createTestPurchase({
+      buyerId: otherId,
+      articleId: article2.id,
+    });
+
+    expect(await getMyPurchases()).toStrictEqual([
+      {
+        articleId: article1.id,
+        articleTitle: article1.title,
+        createdAt: myPurchase.createdAt,
+        paymentAmount: myPurchase.paymentAmount,
+      },
+    ]);
+  });
+  it("降順で取得する", async () => {
+    const { userId: myId } = await createTestUser();
+    const { userId: authorId } = await createTestUser();
+    signInAs(myId);
+    const article1 = await createTestArticle({ authorId });
+    const article2 = await createTestArticle({ authorId });
+    const olderMyPurchase = await createTestPurchase({
+      buyerId: myId,
+      articleId: article1.id,
+      createdAt: new Date("2026-01-01"),
+    });
+    const newerMyPurchase = await createTestPurchase({
+      buyerId: myId,
+      articleId: article2.id,
+      createdAt: new Date("2026-01-02"),
+    });
+
+    expect(await getMyPurchases()).toStrictEqual([
+      {
+        articleId: article2.id,
+        articleTitle: article2.title,
+        createdAt: new Date("2026-01-02"),
+        paymentAmount: newerMyPurchase.paymentAmount,
+      },
+      {
+        articleId: article1.id,
+        articleTitle: article1.title,
+        createdAt: new Date("2026-01-01"),
+        paymentAmount: olderMyPurchase.paymentAmount,
+      },
+    ]);
+  });
+  it("paymentAmount は purchases 由来である", async () => {
+    const { userId: myId } = await createTestUser();
+    const { userId: authorId } = await createTestUser();
+    signInAs(myId);
+    const article = await createTestArticle({ authorId, price: 500 });
+    const paidAmount = 1000;
+    const myPurchase = await createTestPurchase({
+      buyerId: myId,
+      articleId: article.id,
+      paymentAmount: paidAmount,
+    });
+
+    expect(await getMyPurchases()).toStrictEqual([
+      {
+        articleId: article.id,
+        articleTitle: article.title,
+        createdAt: myPurchase.createdAt,
+        paymentAmount: paidAmount,
+      },
+    ]);
   });
 });
