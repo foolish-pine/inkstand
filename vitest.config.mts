@@ -24,7 +24,9 @@ export default defineConfig({
     // postgres.js は最初のクエリまで接続しないので、実際に DB を触らない
     // テストならこれで足りる。DB を触るテストは *.db.test.ts に置く。
     env: {
+      APP_URL: "http://example.com",
       DATABASE_URL: "postgres://unused:unused@127.0.0.1:1/unused",
+      RESEND_API_KEY: "re_dummy",
       STRIPE_SECRET_KEY: "sk_test_dummy",
       STRIPE_WEBHOOK_SECRET: "whsec_dummy",
     },

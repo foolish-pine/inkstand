@@ -46,13 +46,15 @@ export async function createCheckout(formData: FormData): Promise<void> {
     ],
     metadata: {
       buyerId: user.id,
+      buyerEmail: user.email ?? null,
       articleId,
+      articleTitle: article.title,
     },
     success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${origin}/articles/${articleId}`,
   });
 
-  if (!session.url) throw new Error("Checkout URL の取得に失敗しました");
+  if (!session.url) throw new Error("Checkout URL の取得に失敗しました。");
 
   redirect(session.url);
 }

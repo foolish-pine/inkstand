@@ -2,15 +2,18 @@ import { DrizzleQueryError } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 import postgres from "postgres";
 import Stripe from "stripe";
+import { buildReceipt } from "./build-receipt";
 import { parseSession } from "./parse-session";
 import { createPurchase } from "@/lib/dal/stripe-webhook";
 import { requireEnv } from "@/lib/require-env";
+import { resend } from "@/lib/resend";
 import { stripe } from "@/lib/stripe";
 
 const stripeWebhookSecret = requireEnv(
   process.env.STRIPE_WEBHOOK_SECRET,
   "STRIPE_WEBHOOK_SECRET",
 );
+const origin = requireEnv(process.env.APP_URL, "APP_URL");
 
 const acknowledgeUnprocessable = ({
   eventId,
@@ -24,6 +27,20 @@ const acknowledgeUnprocessable = ({
   console.error(`Event ID: ${eventId}, Session ID: ${sessionId}, ${message}`);
 
   return NextResponse.json({ error: message }, { status: 200 });
+};
+
+const acknowledgeEmailFailure = ({
+  eventId,
+  sessionId,
+  message,
+}: {
+  eventId: string;
+  sessionId: string;
+  message: string;
+}) => {
+  console.error(`Event ID: ${eventId}, Session ID: ${sessionId}, ${message}`);
+
+  return NextResponse.json({ message }, { status: 200 });
 };
 
 export async function POST(req: NextRequest) {
@@ -56,7 +73,14 @@ export async function POST(req: NextRequest) {
         });
       }
 
-      const { buyerId, articleId, paymentAmount, stripePaymentIntentId } = data;
+      const {
+        buyerId,
+        buyerEmail,
+        articleId,
+        articleTitle,
+        paymentAmount,
+        stripePaymentIntentId,
+      } = data;
 
       try {
         const purchase = await createPurchase({
@@ -91,6 +115,30 @@ export async function POST(req: NextRequest) {
 
         throw e;
       }
+      const receiptBody = buildReceipt({
+        buyerEmail,
+        articleId,
+        articleTitle,
+        paymentAmount,
+        origin,
+      });
+
+      if (!receiptBody)
+        return acknowledgeEmailFailure({
+          eventId: event.id,
+          sessionId: session.id,
+          message: "buyerEmail is missing",
+        });
+
+      const { error } = await resend.emails.send(receiptBody);
+
+      if (error)
+        return acknowledgeEmailFailure({
+          eventId: event.id,
+          sessionId: session.id,
+          message: `${error.name}: ${error.message}`,
+        });
+
       break;
     }
 

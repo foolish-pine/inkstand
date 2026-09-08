@@ -18,7 +18,9 @@ type ParseResult =
   | {
       success: true;
       buyerId: string;
+      buyerEmail: string | null;
       articleId: string;
+      articleTitle: string | null;
       paymentAmount: number;
       stripePaymentIntentId: string;
     };
@@ -54,7 +56,7 @@ export function parseSession(session: ParseSessionInput): ParseResult {
     };
   }
 
-  const { buyerId, articleId } = session.metadata;
+  const { buyerId, buyerEmail, articleId, articleTitle } = session.metadata;
   if (!buyerId || !articleId) {
     return {
       success: false,
@@ -65,7 +67,9 @@ export function parseSession(session: ParseSessionInput): ParseResult {
   return {
     success: true,
     buyerId,
+    buyerEmail: buyerEmail || null,
     articleId,
+    articleTitle: articleTitle || null,
     paymentAmount,
     stripePaymentIntentId,
   };
