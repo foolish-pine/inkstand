@@ -1,16 +1,16 @@
 import { sql } from "drizzle-orm";
 import {
-  pgTable,
-  uuid,
+  check,
   integer,
-  varchar,
+  pgEnum,
+  pgSchema,
+  pgTable,
   text,
   timestamp,
-  pgSchema,
-  uniqueIndex,
-  pgEnum,
-  check,
   unique,
+  uniqueIndex,
+  uuid,
+  varchar,
 } from "drizzle-orm/pg-core";
 import { nanoid } from "nanoid";
 

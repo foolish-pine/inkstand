@@ -1,7 +1,7 @@
 import {
   type HTMLAttributes,
-  type HTMLInputTypeAttribute,
   type HTMLInputAutoCompleteAttribute,
+  type HTMLInputTypeAttribute,
 } from "react";
 
 export function TextField({

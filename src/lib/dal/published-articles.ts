@@ -1,4 +1,4 @@
-import { desc, and, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { cacheTag } from "next/cache";
 import { db } from "@/db";
 import { articles } from "@/db/schema";

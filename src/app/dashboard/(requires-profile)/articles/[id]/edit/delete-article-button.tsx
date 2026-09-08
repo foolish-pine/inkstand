@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useRef, useState } from "react";
-import { deleteArticle, DeleteArticleFormState } from "@/actions/articles";
+import { DeleteArticleFormState, deleteArticle } from "@/actions/articles";
 
 const initialState: DeleteArticleFormState = {
   formErrors: [],

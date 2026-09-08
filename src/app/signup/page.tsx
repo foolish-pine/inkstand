@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useActionState } from "react";
-import { signUp, type SignUpFormState } from "@/actions/auth";
+import { type SignUpFormState, signUp } from "@/actions/auth";
 import { TextField } from "@/components/text-field";
 import { Wordmark } from "@/components/wordmark";
 

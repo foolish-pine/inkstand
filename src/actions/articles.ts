@@ -5,7 +5,7 @@ import { notFound, redirect } from "next/navigation";
 import z from "zod";
 import { articleFormSchema } from "./articles/article-form-schema";
 import { getString } from "./form-data";
-import { latestArticlesTag, articleTag } from "@/lib/cache-tags";
+import { articleTag, latestArticlesTag } from "@/lib/cache-tags";
 import {
   ArticleHasPurchasesError,
   createMyArticle,

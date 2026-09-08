@@ -6,8 +6,8 @@ import { signInSchema } from "./auth/sign-in-schema";
 import { signUpSchema } from "./auth/sign-up-schema";
 import { getString } from "./form-data";
 import {
-  createProfile,
   DuplicatedUsernameError,
+  createProfile,
   isUsernameTaken,
 } from "@/lib/dal/signup";
 import { createClient } from "@/lib/supabase/server";

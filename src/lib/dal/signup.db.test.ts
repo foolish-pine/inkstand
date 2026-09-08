@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
-  createProfile,
   DuplicatedUsernameError,
+  createProfile,
   isUsernameTaken,
 } from "@/lib/dal/signup";
 import { createTestAuthUser, createTestUser } from "@/test/fixtures";

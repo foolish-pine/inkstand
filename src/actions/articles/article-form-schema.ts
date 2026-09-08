@@ -2,8 +2,8 @@ import z from "zod";
 import { countCharacters } from "./count-characters";
 import {
   ARTICLE_TITLE_MAX_LENGTH,
-  articleStatus,
   PAID_ARTICLE_BODY_MIN_LENGTH,
+  articleStatus,
 } from "@/db/schema";
 
 export const articleFormSchema = z

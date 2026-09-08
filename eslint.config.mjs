@@ -9,6 +9,10 @@ const eslintConfig = defineConfig([
   {
     rules: {
       "import/first": "error",
+      // 波括弧の中の並びは import/order の対象外。宣言の並びは import/order が
+      // 持っているので、ここでは member の並びだけを見る（宣言の並びを有効に
+      // すると自動修正できない指摘が出続ける）。
+      "sort-imports": ["error", { ignoreDeclarationSort: true }],
       "import/order": [
         "error",
         { alphabetize: { order: "asc" }, "newlines-between": "never" },

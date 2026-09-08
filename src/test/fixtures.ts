@@ -1,8 +1,8 @@
-import { eq, and, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import {
-  articles,
   PAID_ARTICLE_BODY_MIN_LENGTH,
+  articles,
   profiles,
   purchases,
 } from "@/db/schema";
