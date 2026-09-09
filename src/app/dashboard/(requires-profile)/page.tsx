@@ -11,6 +11,12 @@ export default async function Dashboard() {
     <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-16">
       <h1 className="font-display text-3xl tracking-wide">ダッシュボード</h1>
       <p className="text-muted mt-3 text-sm">{user.email}でログイン中</p>
+      <Link
+        href="/dashboard/purchases"
+        className="text-muted hover:text-foreground focus-visible:outline-accent mt-6 inline-block text-xs tracking-wider underline underline-offset-4 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2"
+      >
+        購入履歴を見る
+      </Link>
       <div className="mt-16 flex items-baseline justify-between gap-6">
         <h2 className="font-display text-xl tracking-wide">あなたの記事</h2>
         <Link
