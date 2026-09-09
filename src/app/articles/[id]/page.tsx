@@ -11,7 +11,7 @@ import { SiteHeader } from "@/components/site-header";
 import { getCurrentUser } from "@/lib/current-user";
 import { hasPurchasedArticle } from "@/lib/dal/my-purchases";
 import { getPublishedArticle } from "@/lib/dal/published-articles";
-import { publishedAtFormatter } from "@/lib/published-at-formatter";
+import { dateFormatter } from "@/lib/date-formatter";
 
 async function ArticleContent({
   params,
@@ -34,7 +34,7 @@ async function ArticleContent({
           dateTime={article.publishedAt.toISOString()}
           className="text-muted mt-4 block text-xs tracking-wider tabular-nums"
         >
-          {publishedAtFormatter.format(article.publishedAt)}
+          {dateFormatter.format(article.publishedAt)}
         </time>
       )}
       <Suspense fallback={<ArticleExcerptBody excerptText={excerpt.text} />}>

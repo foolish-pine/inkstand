@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
 import { getLatestArticles } from "@/lib/dal/published-articles";
-import { publishedAtFormatter } from "@/lib/published-at-formatter";
+import { dateFormatter } from "@/lib/date-formatter";
 
 export default async function Home() {
   const latestArticles = await getLatestArticles();
@@ -28,7 +28,7 @@ export default async function Home() {
                         dateTime={article.publishedAt.toISOString()}
                         className="text-muted mt-2 block text-xs tracking-wider tabular-nums"
                       >
-                        {publishedAtFormatter.format(article.publishedAt)}
+                        {dateFormatter.format(article.publishedAt)}
                       </time>
                     )}
                   </span>
