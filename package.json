@@ -19,6 +19,7 @@
   "dependencies": {
     "@supabase/ssr": "^0.12.4",
     "@supabase/supabase-js": "^2.112.3",
+    "dayjs": "^1.11.23",
     "drizzle-orm": "^0.45.2",
     "nanoid": "^6.0.1",
     "next": "16.3.1",

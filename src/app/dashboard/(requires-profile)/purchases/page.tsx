@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getMyPurchases } from "@/lib/dal/my-purchases";
-import { dateFormatter } from "@/lib/date-formatter";
+import { formatDate } from "@/lib/format-date";
 
 export default async function Purchases() {
   const myPurchases = await getMyPurchases();
@@ -30,7 +30,7 @@ export default async function Purchases() {
                     dateTime={purchase.createdAt.toISOString()}
                     className="text-muted mt-2 block text-xs tracking-wider tabular-nums"
                   >
-                    {dateFormatter.format(purchase.createdAt)}
+                    {formatDate(purchase.createdAt)}
                   </time>
                 </span>
                 <span className="text-muted shrink-0 text-xs tabular-nums">
