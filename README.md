@@ -106,15 +106,16 @@ DB を直接触ることは ESLint で禁止しています。DAL は「そこ�
 
 | 種別             | 採用                                     | バージョン |
 | ---------------- | ---------------------------------------- | ---------- |
-| フレームワーク   | Next.js（App Router / Turbopack）        | 16.3.1     |
+| フレームワーク   | Next.js（App Router / Turbopack）        | 16.3.4     |
 | UI               | React                                    | 19.2.8     |
 | 言語             | TypeScript                               | 5.9.3      |
 | スタイリング     | Tailwind CSS                             | 4.3.3      |
 | DB / ORM         | Supabase Postgres + Drizzle ORM          | 0.45.2     |
 | 認証             | Supabase Auth（`@supabase/ssr`）         | 0.12.4     |
 | ストレージ       | Supabase Storage                         | 未導入     |
-| 決済             | Stripe Checkout（テストモード）          | 未導入     |
-| メール           | Resend                                   | 未導入     |
+| 決済             | Stripe Checkout（テストモード）          | 22.6.1     |
+| メール           | Resend                                   | 6.26.0     |
+| 日付             | Day.js（`utc` / `timezone` プラグイン）  | 1.11.23    |
 | Lint / Format    | ESLint + Prettier                        | 9.39.5 / 3.9.6 |
 | 単体テスト       | Vitest + Testing Library                 | 4.1.11 / 16.3.2 |
 | E2E              | Playwright                               | 未導入     |

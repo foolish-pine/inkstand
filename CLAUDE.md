@@ -492,7 +492,7 @@ drizzle/            # マイグレーション出力
 
 ### 現在地
 
-**ステップ8 まで完了。次はステップ9（Supabase Storage で画像アップロード）。ただし着手前に保留課題10（Next.js を 16.3.4 に上げる）を片付ける。**
+**ステップ8 まで完了。Next.js は 16.3.4 に上げ済み。次はステップ9（Supabase Storage で画像アップロード）。**
 
 | # | 内容 | 状態 |
 | --- | --- | --- |
@@ -508,7 +508,7 @@ drizzle/            # マイグレーション出力
 - **`count(*)` ではなく `count(purchases.id)`。** `leftJoin` と `count(*)` を組み合わせると、売れていない記事が NULL の行 1 つを数えて **1 件**になる。列を指定した `count` は NULL を数えない
 - **`sum()` は `numeric` を返すので Drizzle では `string | null`。** `coalesce(sum(...), 0)` ＋ `.mapWith(Number)` で型と値の両方をそろえる
 - **起点のテーブルが違うと、同じ条件でも意味が変わる。** 記事ごとは `articles` 起点の `leftJoin`（売れていない記事も 0 件で出す）、月別は `purchases` 起点の `innerJoin`。`isNotNull(articles.publishedAt)` は**記事ごとにだけ効く**（月別では購入の無い記事がそもそも出てこないので何も除外しない）。同じ名前のテストをコピーしても意味は移らない
-- **「購入がある記事の `publishedAt` は必ず入っている」は 3 つに分かれて支えられている**（`getArticleForCheckout` の `status = 'published'` / check 制約 `published_requires_date` / `updateMyArticle` が `publishedAt` を消さない）。**他の関数にコメントで書いても守れない**（変更する人はそのファイルを読まない）。固定するなら保留課題11 のテスト
+- **「購入がある記事の `publishedAt` は必ず入っている」は 3 つに分かれて支えられている**（`getArticleForCheckout` の `status = 'published'` / check 制約 `published_requires_date` / `updateMyArticle` が `publishedAt` を消さない）。**他の関数にコメントで書いても守れない**（変更する人はそのファイルを読まない）。固定するなら保留課題10 のテスト
 - **全体の合計はアプリ側で足す。** 一覧を出さずに合計だけ欲しい画面が無く、行は既に手元にある。純粋関数にできるので DB 不要のテストで固定できる
 - **集計期間は直近 12 か月の固定。起点は引数で受け取る**（既定値 `new Date()`）。DB の `now()` に頼るとフィクスチャが年が変わった瞬間に窓から外れる。期間選択は保留課題9
 - **日付は dayjs ＋ `utc` / `timezone` プラグイン。`src/lib/dayjs.ts` が `jst()` だけを export する。** 素の `dayjs()` も `new Date(y, m, d)` も `getMonth()` も**ランタイムのタイムゾーン**に従う。**Vercel と GitHub Actions は UTC、手元は JST。** 同じ入力で窓が 1 か月ずれる（実測）。ゾーンを呼び出しごとの判断にすると必ず忘れる
@@ -703,18 +703,14 @@ drizzle/            # マイグレーション出力
    - `searchParams` が入るので、そのページのキャッシュの扱いを決め直すことになる
    - 全期間を許すと行数が運用年数に比例して増える。グラフの横軸も潰れる
    - 集計の起点は**基準日を引数で受け取る**形にしてあるので、DAL 側はそのまま拡張点になる（既定値は `new Date()`）。DB の `now()` に頼ると、12 か月の窓が動いてフィクスチャが**年が変わった瞬間に窓から外れる**
-10. **Next.js を 16.3.4 に上げる**（2026-09-09 に `npm audit` で検出、**ステップ8 の完了後・ステップ9 の着手前**にやると決めた）。`next 16.0.0 - 16.3.2` に critical の勧告が 2 件
-   - Windows ホストでの未認証 RCE。Vercel は Linux なので影響しない
-   - **Image Optimization API（AVIF）での未認証 RCE。ステップ9 で `next/image` を使い始めると効いてくる**ので、その前に上げる
-   - `package.json` が `16.3.1` 固定なので範囲の書き換えが要る。`cacheComponents` の挙動が変わっていないか、ビルド出力と `prerender-manifest.json` で確認する
-   - `sharp` と `js-yaml` は `npm audit fix` だけで直る
-11. **`src/lib/dal/checkout.ts` にテストが無い**（2026-09-09 に気づいた）。DAL で唯一テストの無いファイルで、しかも**金額の正を取りに行く場所**
+10. **`src/lib/dal/checkout.ts` にテストが無い**（2026-09-09 に気づいた）。DAL で唯一テストの無いファイルで、しかも**金額の正を取りに行く場所**
    - 固定したいのは `getArticleForCheckout` が **`status = 'published'` の記事しか返さない**こと。Server Action は UI を経由せず直接叩けるので、下書きの記事 ID を渡す経路は実在する
    - これは「購入がある記事の `publishedAt` は必ず入っている」という不変条件の**根**でもある。この不変条件は `getArticleForCheckout` の絞り込み・check 制約 `published_requires_date`・`updateMyArticle` が `publishedAt` を消さないこと、の 3 つに分かれて支えられていて、どこにも名前が付いていない
    - **他の関数にコメントで書いても守れない。** 変更する人はそのファイルを読まない。固定するならこのテスト
 
 ### 決まっている方針
 
+- **Next.js は 16.3.4**（2026-09-10 に 16.3.1 から更新）。`next 16.0.0 - 16.3.2` の critical 勧告（Image Optimization API の AVIF 経由 RCE）を踏むため、ステップ9 で `next/image` を使う前に上げた。`prerender-manifest.json` の `renderingMode` は全ルート差分なし、静的シェルも 15〜45 バイト縮んだだけで構造は同じ。`cacheComponents` の挙動は変わっていない。**`next` と `eslint-config-next` は完全固定のまま**にしてある（`npm install next@…` は `^` を付けるので戻すこと）
 - ステップ4 の開始時に `cacheComponents: true` を有効にする（詳細はステップ4 の節）
 - 確認メールは無効化済み（詳細は「外部サービスの準備」の節）
 - **認可は layout に置かない。** Next.js の layout はクライアント側の画面遷移で再レンダリングされないため、layout だけのチェックは「一度通れば以降は確認されない」状態になる。各ページ・各 Server Action の入口に `requireUser()` を置く。重複するコストは `src/lib/current-user.ts` の React `cache()` が吸収する（1 リクエスト＝ `getUser()` 1 回）
