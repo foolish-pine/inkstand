@@ -2,6 +2,8 @@ import Link from "next/link";
 import { getMyPurchases } from "@/lib/dal/my-purchases";
 import { formatDate } from "@/lib/format-date";
 
+export const instant = false;
+
 export default async function Purchases() {
   const myPurchases = await getMyPurchases();
 

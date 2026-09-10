@@ -2,6 +2,11 @@ import { signOut } from "@/actions/auth";
 import { Wordmark } from "@/components/wordmark";
 import { requireUser } from "@/lib/current-user";
 
+// ダッシュボードはセッションを確かめてからでないと描けないので、ブロックしてよい
+// ルートだと宣言する。Next.js はこの宣言を 2 つの別々の走査で読む。ここ（layout）の
+// 宣言は「ブロックしてよいか」の判定にしか効かず、「検証が要るか」の走査は子まで
+// 辿り続けて、宣言の無いページ segment で暗黙に有効になる。そのため各ページにも
+// 同じ宣言が要る（無いと dev のログに blocking-prerender-dynamic が出続ける）。
 export const instant = false;
 
 export default async function DashboardLayout({

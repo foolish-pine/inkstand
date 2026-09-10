@@ -2,6 +2,8 @@ import { ArticleForm } from "../article-form";
 import { createArticle } from "@/actions/articles";
 import { requireUser } from "@/lib/current-user";
 
+export const instant = false;
+
 export default async function NewArticle() {
   await requireUser();
 

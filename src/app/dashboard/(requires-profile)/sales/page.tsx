@@ -5,6 +5,8 @@ import { sumSales } from "./sum-sales";
 import { getMySales, getMySalesByMonth } from "@/lib/dal/my-sales";
 import { salesMonthRange } from "@/lib/sales-month-range";
 
+export const instant = false;
+
 export default async function Sales() {
   // cacheComponents が有効なので、new Date() のような実行のたびに変わる値は
   // 静的なプリレンダリングでは扱えない。ここから先はリクエスト時に描画する。

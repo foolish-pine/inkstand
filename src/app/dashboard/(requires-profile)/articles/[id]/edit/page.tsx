@@ -4,6 +4,8 @@ import { DeleteArticleButton } from "./delete-article-button";
 import { updateArticle } from "@/actions/articles";
 import { getMyArticle } from "@/lib/dal/my-articles";
 
+export const instant = false;
+
 export default async function EditArticle({
   params,
 }: PageProps<"/dashboard/articles/[id]/edit">) {

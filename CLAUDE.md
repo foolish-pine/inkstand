@@ -684,7 +684,11 @@ drizzle/            # マイグレーション出力
 4. **編集画面のクライアントキャッシュ**（2026-08-30 に発見、対処は保留）。編集 → 保存 → ダッシュボード → 同じ記事の編集画面へ**クライアント遷移**すると変更前の内容が出る。リロードで直り、5 分（`x-nextjs-stale-time: 300`）で自然に消える。編集ページはサーバー側でキャッシュしていないので、古いのはブラウザの Router Cache
    - `updateTag` はサーバーの `use cache` エントリしか落とさない。クライアント側は `refresh()`（`next/cache`、Server Action 専用）の担当だが、**この構成では使えない**
    - `refresh()` は `/dashboard` への遷移を検証し直す。そこで `requireUser()` → `supabase.auth.getUser()` の**キャッシュされない `fetch`** が `<Suspense>` の外にあるためエラーになる
-   - `instant = false` は `allowEmptyStaticShell` の計算にしか使われず（`app-render.js:3942`）、**ナビゲーション検証は免除しない**
+   - `instant = false` は**ナビゲーション検証を免除しない**。Next.js はこの宣言を 2 つの別々の走査で読む（2026-09-10 に 16.3.4 のソースで確認）
+     - `isPageAllowedToBlock`: 「ブロックしてよいルートか」。`instant === false` を見つけた時点で打ち切る。**layout の宣言で足りる**
+     - `anySegmentNeedsInstantValidation`: 「検証が要るか」。`instant === false` の segment は自分では検証を要求しないが、**子を辿り続ける**。`isImplicitValidationSegment`（`__PAGE__` / `__DEFAULT__`）に当たると、宣言の無いページで暗黙に有効になる。**だから各ページにも `export const instant = false` が要る**（ダッシュボード配下 6 ページに置いた。無いと dev のログに `blocking-prerender-dynamic` が出続ける）
+     - dev だけに出て build で出ないのは、既定の `validationLevel` が `warning`（level 0）で、dev の検証が level 0、build が level 1 のため。どちらも `node_modules/next/dist/server/app-render/instant-validation/instant-config.js`
+     - **ログは消えたが、原因（`getUser()` が `<Suspense>` の外にある）は残っている。** 消したのは診断であって、クライアント遷移が即座でないことは変わらない
    - 対処するなら認証の構造から。`requireUser()` を `<Suspense>` に入れる（未ログイン時に枠が一瞬見える）／`<Link prefetch={false}>`／`experimental.staleTimes` のいずれか
 5. **`requireUser()` がリクエストごとに Supabase へ HTTP 往復している。** Cookie を読むだけの処理ではない。`supabase.auth.getUser()` は Auth サーバーに問い合わせる。React の `cache()` で 1 リクエスト 1 回には畳んであるが、往復自体は残る
 6. **拒否した理由がサーバー側にも残らない**（2026-09-03 に発見）。`createCheckout` は「記事が無い」と「あるが買えない（自分の記事・購入済み・無料）」の両方を `notFound()` で返す。画面に同じ答えを返すのは正しい（記事 ID の存在有無を漏らさない）が、ログにも区別が残らないため、購入できないという問い合わせが来ても原因を追えない。**画面の答えは 404 のまま、サーバーのログにだけ理由を残す**のが対処。同じ形は `updateArticle` / `deleteArticle` にもある

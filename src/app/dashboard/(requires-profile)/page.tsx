@@ -2,6 +2,8 @@ import Link from "next/link";
 import { requireUser } from "@/lib/current-user";
 import { getMyArticles } from "@/lib/dal/my-articles";
 
+export const instant = false;
+
 export default async function Dashboard() {
   const user = await requireUser();
 
