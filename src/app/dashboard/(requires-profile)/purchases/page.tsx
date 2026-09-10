@@ -7,13 +7,7 @@ export default async function Purchases() {
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-16">
-      <Link
-        href="/dashboard"
-        className="text-muted hover:text-foreground focus-visible:outline-accent text-xs tracking-wider underline underline-offset-4 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2"
-      >
-        ダッシュボードへ戻る
-      </Link>
-      <h1 className="font-display mt-8 text-3xl tracking-wide">購入履歴</h1>
+      <h1 className="font-display text-3xl tracking-wide">購入履歴</h1>
       {myPurchases.length > 0 ? (
         <ul className="border-rule mt-10 border-t">
           {myPurchases.map((purchase) => (

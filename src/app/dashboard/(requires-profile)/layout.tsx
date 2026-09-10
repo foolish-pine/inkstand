@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { DashboardNav } from "./dashboard-nav";
 import { getMyProfile } from "@/lib/dal/my-profile";
 
 export default async function RequiresProfileLayout({
@@ -8,5 +9,10 @@ export default async function RequiresProfileLayout({
 
   if (!myProfile) redirect("/dashboard/profile/new");
 
-  return <>{children}</>;
+  return (
+    <>
+      <DashboardNav />
+      {children}
+    </>
+  );
 }
