@@ -1,10 +1,15 @@
 import Link from "next/link";
+import { connection } from "next/server";
 import { fillMissingMonths } from "./fill-missing-months";
 import { sumSales } from "./sum-sales";
 import { getMySales, getMySalesByMonth } from "@/lib/dal/my-sales";
 import { salesMonthRange } from "@/lib/sales-month-range";
 
 export default async function Sales() {
+  // cacheComponents が有効なので、new Date() のような実行のたびに変わる値は
+  // 静的なプリレンダリングでは扱えない。ここから先はリクエスト時に描画する。
+  await connection();
+
   const baseDate = new Date();
   const range = salesMonthRange(baseDate);
   const [mySales, mySalesByMonth] = await Promise.all([
