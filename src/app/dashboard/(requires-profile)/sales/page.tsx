@@ -9,7 +9,7 @@ export default async function Sales() {
   const range = salesMonthRange(baseDate);
   const [mySales, mySalesByMonth] = await Promise.all([
     getMySales(),
-    getMySalesByMonth(baseDate),
+    getMySalesByMonth(range),
   ]);
   const monthlySales = fillMissingMonths({
     range,

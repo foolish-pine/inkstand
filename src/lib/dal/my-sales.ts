@@ -2,7 +2,6 @@ import { and, count, desc, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { articles, purchases } from "@/db/schema";
 import { requireUser } from "@/lib/current-user";
-import { salesMonthRange } from "@/lib/sales-month-range";
 
 export async function getMySales() {
   const user = await requireUser();
@@ -24,10 +23,9 @@ export async function getMySales() {
     .orderBy(desc(articles.publishedAt), desc(articles.id));
 }
 
-export async function getMySalesByMonth(baseDate: Date = new Date()) {
+export async function getMySalesByMonth(range: string[]) {
   const user = await requireUser();
 
-  const range = salesMonthRange(baseDate);
   const month = sql<string>`to_char(${purchases.createdAt} AT TIME ZONE 'Asia/Tokyo', 'YYYY-MM')`;
 
   return await db

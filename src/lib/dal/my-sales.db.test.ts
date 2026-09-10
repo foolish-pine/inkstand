@@ -177,7 +177,7 @@ describe("getMySales", () => {
 });
 
 describe("getMySalesByMonth", () => {
-  it("基準月から直近12ヶ月の自分の記事の売上数と売上高の集計を月ごとに取得する", async () => {
+  it("与えられた range の自分の記事の売上数と売上高の集計を月ごとに取得する", async () => {
     const { userId: myId } = await createTestUser();
     const { userId: buyer1Id } = await createTestUser();
     const { userId: buyer2Id } = await createTestUser();
@@ -209,7 +209,22 @@ describe("getMySalesByMonth", () => {
       createdAt: new Date("2026-03-16"),
     });
 
-    expect(await getMySalesByMonth(new Date("2026-04-15"))).toStrictEqual([
+    expect(
+      await getMySalesByMonth([
+        "2025-07",
+        "2025-08",
+        "2025-09",
+        "2025-10",
+        "2025-11",
+        "2025-12",
+        "2026-01",
+        "2026-02",
+        "2026-03",
+        "2026-04",
+        "2026-05",
+        "2026-06",
+      ]),
+    ).toStrictEqual([
       {
         month: "2025-12",
         salesCount: 1,
@@ -238,18 +253,18 @@ describe("getMySalesByMonth", () => {
       buyerId,
       articleId: article1.id,
       paymentAmount: 100,
-      createdAt: new Date("2025-03-01"),
+      createdAt: new Date("2026-02-28T23:59+09:00"),
     });
     await createTestPurchase({
       buyerId,
       articleId: article2.id,
       paymentAmount: 1000,
-      createdAt: new Date("2026-01-01"),
+      createdAt: new Date("2026-03-01T00:00+09:00"),
     });
 
-    expect(await getMySalesByMonth(new Date("2026-04-15"))).toStrictEqual([
+    expect(await getMySalesByMonth(["2026-03"])).toStrictEqual([
       {
-        month: "2026-01",
+        month: "2026-03",
         salesCount: 1,
         salesAmount: 1000,
       },
@@ -271,132 +286,20 @@ describe("getMySalesByMonth", () => {
       buyerId,
       articleId: article2.id,
       paymentAmount: 1000,
-      createdAt: new Date("2026-01-01"),
+      createdAt: new Date("2026-03-31T23:59+09:00"),
     });
     await createTestPurchase({
       buyerId,
       articleId: article1.id,
       paymentAmount: 100,
-      createdAt: new Date("2026-06-01"),
+      createdAt: new Date("2026-04-01T00:00+09:00"),
     });
 
-    expect(await getMySalesByMonth(new Date("2026-04-15"))).toStrictEqual([
+    expect(await getMySalesByMonth(["2026-03"])).toStrictEqual([
       {
-        month: "2026-01",
+        month: "2026-03",
         salesCount: 1,
         salesAmount: 1000,
-      },
-    ]);
-  });
-  it("基準月からちょうど12ヶ月前に発生した売上は集計に含まれる", async () => {
-    const { userId: myId } = await createTestUser();
-    const { userId: buyerId } = await createTestUser();
-    signInAs(myId);
-    const article = await createTestArticle({
-      authorId: myId,
-      publishedAt: new Date("2025-01-01"),
-    });
-    await createTestPurchase({
-      buyerId,
-      articleId: article.id,
-      paymentAmount: 100,
-      createdAt: new Date("2025-05-01"),
-    });
-
-    expect(await getMySalesByMonth(new Date("2026-04-15"))).toStrictEqual([
-      {
-        month: "2025-05",
-        salesCount: 1,
-        salesAmount: 100,
-      },
-    ]);
-  });
-  it("基準月の翌月初日に発生した売上は集計に含まれない", async () => {
-    const { userId: myId } = await createTestUser();
-    const { userId: buyerId } = await createTestUser();
-    signInAs(myId);
-    const article1 = await createTestArticle({
-      authorId: myId,
-      publishedAt: new Date("2025-01-01"),
-    });
-    const article2 = await createTestArticle({
-      authorId: myId,
-      publishedAt: new Date("2025-01-01"),
-    });
-    await createTestPurchase({
-      buyerId,
-      articleId: article1.id,
-      paymentAmount: 100,
-      createdAt: new Date("2026-04-01"),
-    });
-    await createTestPurchase({
-      buyerId,
-      articleId: article2.id,
-      paymentAmount: 1000,
-      createdAt: new Date("2026-05-01"),
-    });
-
-    expect(await getMySalesByMonth(new Date("2026-04-15"))).toStrictEqual([
-      {
-        month: "2026-04",
-        salesCount: 1,
-        salesAmount: 100,
-      },
-    ]);
-  });
-  it("集計期間最初の月の月初直後の購入が集計に含まれる", async () => {
-    const { userId: myId } = await createTestUser();
-    const { userId: buyerId } = await createTestUser();
-    signInAs(myId);
-    const article = await createTestArticle({
-      authorId: myId,
-      publishedAt: new Date("2025-01-01"),
-    });
-    await createTestPurchase({
-      buyerId,
-      articleId: article.id,
-      paymentAmount: 100,
-      createdAt: new Date("2025-05-01T05:00+09:00"), // UTCでは2025-04-30T20:00Z
-    });
-
-    expect(await getMySalesByMonth(new Date("2026-04-15"))).toStrictEqual([
-      {
-        month: "2025-05",
-        salesCount: 1,
-        salesAmount: 100,
-      },
-    ]);
-  });
-  it("集計期間最後の月の最終日日付変更直後の購入が集計に含まれない", async () => {
-    const { userId: myId } = await createTestUser();
-    const { userId: buyerId } = await createTestUser();
-    signInAs(myId);
-    const article1 = await createTestArticle({
-      authorId: myId,
-      publishedAt: new Date("2025-01-01"),
-    });
-    const article2 = await createTestArticle({
-      authorId: myId,
-      publishedAt: new Date("2025-01-01"),
-    });
-    await createTestPurchase({
-      buyerId,
-      articleId: article1.id,
-      paymentAmount: 100,
-      createdAt: new Date("2026-01-01"),
-    });
-    await createTestPurchase({
-      buyerId,
-      articleId: article2.id,
-      paymentAmount: 1000,
-      createdAt: new Date("2026-05-01T01:00+09:00"),
-    });
-
-    expect(await getMySalesByMonth(new Date("2026-04-15"))).toStrictEqual([
-      {
-        month: "2026-01",
-        salesCount: 1,
-        salesAmount: 100,
       },
     ]);
   });
@@ -426,7 +329,7 @@ describe("getMySalesByMonth", () => {
       createdAt: new Date("2026-03-15"),
     });
 
-    expect(await getMySalesByMonth(new Date("2026-04-15"))).toStrictEqual([
+    expect(await getMySalesByMonth(["2026-03"])).toStrictEqual([
       {
         month: "2026-03",
         salesCount: 1,
