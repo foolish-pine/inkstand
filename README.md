@@ -79,6 +79,30 @@ npx supabase stop    # コンテナが常駐するので、使い終わったら
 - スキーマの持ち主は Drizzle です。Supabase CLI は環境（Postgres / Auth / Storage）を提供するだけで、`supabase/migrations` は使いません
 - 接続先は `.env.test` に書いてあります。ローカル Supabase の既定値しか含まないため、リポジトリで追跡しています
 
+## Supabase Storage のポリシー
+
+画像バケットのアクセス制御は `supabase/policies/storage.sql` に置いています。
+**このファイルは `npm run db:migrate` では適用されません。**`storage.objects` の持ち主は
+`supabase_storage_admin` で、アプリが `DATABASE_URL` でつなぐ `postgres` ロールは
+そのメンバーではないため、`CREATE POLICY` が権限エラーになります。ローカルの Supabase では
+`postgres` が superuser なので通ってしまい、**ローカルでは成功して本番だけ落ちる**差になります。
+
+適用は SQL Editor から手で行います。ファイルは何度流しても同じ結果になります。
+
+- 本番: Supabase ダッシュボード → SQL Editor
+- ローカル: http://127.0.0.1:54323 → SQL Editor
+
+適用できたかは次で確認します（3 行出ます）。
+
+```sql
+select policyname, cmd, roles, qual, with_check
+from pg_policies where schemaname = 'storage' and tablename = 'objects';
+```
+
+バケットそのもの（`images` / 公開 / 10MB 上限 / MIME は jpeg・png・webp のみ）は
+ダッシュボードで作成します。この設定はリポジトリには現れないので、環境を作り直すときは
+ダッシュボードを確認してください。
+
 ## ディレクトリ構成
 
 ```
@@ -94,6 +118,8 @@ src/
   test/             # テストの基盤（フィクスチャ・スタブ）
   types/            # 型定義
 public/             # 静的ファイル
+supabase/
+  policies/         # Storage のポリシー（db:migrate では適用されない）
 ```
 
 単体テストは対象ファイルの隣に `*.test.ts` として置きます（コロケーション）。
