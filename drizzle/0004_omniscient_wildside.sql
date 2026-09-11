@@ -1,0 +1,2 @@
+ALTER TABLE "articles" ADD COLUMN "cover_image_path" text;--> statement-breakpoint
+ALTER TABLE "articles" ADD CONSTRAINT "cover_image_in_author_folder" CHECK (split_part("articles"."cover_image_path", '/', 1) = "articles"."author_id"::text);

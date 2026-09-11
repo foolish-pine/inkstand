@@ -56,6 +56,7 @@ export const articles = pgTable(
       .references(() => profiles.id),
     title: varchar({ length: ARTICLE_TITLE_MAX_LENGTH }).notNull(),
     body: text().notNull(),
+    coverImagePath: text(),
     status: articleStatus().notNull().default("draft"),
     price: integer().notNull(),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
@@ -74,6 +75,10 @@ export const articles = pgTable(
     check(
       "paid_body_min_length",
       sql`${t.price} = 0 OR char_length(${t.body}) >= ${sql.raw(String(PAID_ARTICLE_BODY_MIN_LENGTH))}`,
+    ),
+    check(
+      "cover_image_in_author_folder",
+      sql`split_part(${t.coverImagePath}, '/', 1) = ${t.authorId}::text`,
     ),
   ],
 );
