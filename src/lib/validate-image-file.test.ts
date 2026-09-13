@@ -20,7 +20,7 @@ describe("validateImageFile", () => {
     (type) => {
       expect(validateImageFile({ type, size: validSize })).toStrictEqual({
         success: false,
-        message: "アップロード可能なのはjpeg、png、webpのいずれかです。",
+        message: "アップロード可能なのはjpg、png、webpのいずれかです。",
       });
     },
   );
@@ -45,7 +45,7 @@ describe("validateImageFile", () => {
       validateImageFile({ type: "image/svg+xml", size: 10 * 1024 * 1024 + 1 }),
     ).toStrictEqual({
       success: false,
-      message: "アップロード可能なのはjpeg、png、webpのいずれかです。",
+      message: "アップロード可能なのはjpg、png、webpのいずれかです。",
     });
   });
 });

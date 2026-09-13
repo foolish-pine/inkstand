@@ -10,6 +10,8 @@ const validInput = {
   body: "あ".repeat(10000),
   status: "draft",
   price: "500",
+  coverImagePath:
+    "11111111-1111-1111-1111-111111111111/covers/V1StGXR8Z5jdHi6BmyT8s.jpg",
 };
 
 describe("articleFormSchema", () => {
@@ -185,6 +187,69 @@ describe("articleFormSchema", () => {
 
       expect(result.success).toBe(true);
       expect(result.data?.price).toBe(expected);
+    });
+  });
+  describe("coverImagePath", () => {
+    it("空文字をパースして null に変換する", () => {
+      const input = {
+        ...validInput,
+        coverImagePath: "",
+      };
+      const result = articleFormSchema.safeParse(input);
+
+      expect(result.success).toBe(true);
+      expect(result.data?.coverImagePath).toBeNull();
+    });
+    it.each(["jpg", "png", "webp"])(
+      "末尾が %s の文字列をパースできる",
+      (extension) => {
+        const coverImagePath = `11111111-1111-1111-1111-111111111111/covers/V1StGXR8Z5jdHi6BmyT8s.${extension}`;
+        const input = {
+          ...validInput,
+          coverImagePath,
+        };
+        const result = articleFormSchema.safeParse(input);
+
+        expect(result.success).toBe(true);
+        expect(result.data?.coverImagePath).toBe(coverImagePath);
+      },
+    );
+    it.each([
+      [
+        "想定より階層の深い文字列",
+        "dir/11111111-1111-1111-1111-111111111111/covers/V1StGXR8Z5jdHi6BmyT8s.jpg",
+      ],
+      [
+        "末尾に拡張子以外の文字がある文字列",
+        "11111111-1111-1111-1111-111111111111/covers/V1StGXR8Z5jdHi6BmyT8s.jpg?x=1",
+      ],
+      [
+        "'covers' を含まない文字列",
+        "11111111-1111-1111-1111-111111111111/other/V1StGXR8Z5jdHi6BmyT8s.jpg",
+      ],
+      [
+        "先頭が uuid ではない文字列",
+        "user-id/covers/V1StGXR8Z5jdHi6BmyT8s.jpg",
+      ],
+      [
+        "末尾が拡張子でない文字列",
+        "11111111-1111-1111-1111-111111111111/covers/V1StGXR8Z5jdHi6BmyT8s",
+      ],
+      [
+        "末尾が許可された拡張子でない文字列",
+        "11111111-1111-1111-1111-111111111111/covers/V1StGXR8Z5jdHi6BmyT8s.pdf",
+      ],
+      ["数字", 123],
+    ])("%s はパースできない", (_, coverImagePath) => {
+      const input = {
+        ...validInput,
+        coverImagePath,
+      };
+      const result = articleFormSchema.safeParse(input);
+      const errorFields = result.error?.issues.map((issue) => issue.path[0]);
+
+      expect(result.success).toBe(false);
+      expect(errorFields).toStrictEqual(["coverImagePath"]);
     });
   });
 });

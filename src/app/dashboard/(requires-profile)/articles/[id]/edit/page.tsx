@@ -23,6 +23,7 @@ export default async function EditArticle({
           body: article.body,
           status: article.status,
           price: article.price.toString(),
+          coverImagePath: article.coverImagePath ?? "",
         }}
         action={updateArticle}
         articleId={article.id}

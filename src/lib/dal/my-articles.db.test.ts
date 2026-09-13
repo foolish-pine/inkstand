@@ -77,6 +77,7 @@ describe("createMyArticle", () => {
     body: "あ".repeat(10000),
     status: "draft",
     price: 500,
+    coverImagePath: null,
   };
 
   it("自分の記事を作成できる", async () => {
@@ -103,6 +104,17 @@ describe("createMyArticle", () => {
 
     expect(result?.publishedAt).not.toBeNull();
   });
+  it("coverImagePath を設定できる", async () => {
+    const { userId } = await createTestUser();
+    const coverImagePath = `${userId}/covers/V1StGXR8Z5jdHi6BmyT8s.jpg`;
+    signInAs(userId);
+    const result = await createMyArticle({
+      ...values,
+      coverImagePath,
+    });
+
+    expect(result?.coverImagePath).toBe(coverImagePath);
+  });
 });
 
 describe("updateMyArticle", () => {
@@ -111,12 +123,14 @@ describe("updateMyArticle", () => {
     body: "あ".repeat(10000),
     status: "draft",
     price: 500,
+    coverImagePath: null,
   };
   const updatedValues: ArticleValues = {
     title: "更新後のタイトル",
     body: "あ".repeat(20000),
     status: "published",
     price: 1000,
+    coverImagePath: null,
   };
 
   it("存在する id の自分の記事を更新できる", async () => {
@@ -130,6 +144,22 @@ describe("updateMyArticle", () => {
 
     expect(result?.id).toBe(article.id);
     expect(result).toMatchObject(updatedValues);
+  });
+  it("coverImagePath を更新できる", async () => {
+    const { userId } = await createTestUser();
+    const coverImagePath = `${userId}/covers/V1StGXR8Z5jdHi6BmyT8s.jpg`;
+    const article = await createTestArticle({
+      authorId: userId,
+      ...initialValues,
+    });
+    signInAs(userId);
+    const result = await updateMyArticle(article.id, {
+      ...updatedValues,
+      coverImagePath,
+    });
+
+    expect(result?.id).toBe(article.id);
+    expect(result).toMatchObject({ ...updatedValues, coverImagePath });
   });
   it("下書きのままの記事の更新では publishedAt を更新しない", async () => {
     const { userId } = await createTestUser();

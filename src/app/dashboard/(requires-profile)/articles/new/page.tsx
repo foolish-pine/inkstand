@@ -16,6 +16,7 @@ export default async function NewArticle() {
           body: "",
           status: "draft",
           price: "",
+          coverImagePath: "",
         }}
         action={createArticle}
       />

@@ -27,7 +27,7 @@ export function validateImageFile({
   if (extension === undefined)
     return {
       success: false,
-      message: "アップロード可能なのはjpeg、png、webpのいずれかです。",
+      message: "アップロード可能なのはjpg、png、webpのいずれかです。",
     };
 
   if (size > MAX_FILE_SIZE)

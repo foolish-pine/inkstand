@@ -15,7 +15,10 @@ export class ArticleHasPurchasesError extends Error {
 }
 
 export type ArticleValues = Required<
-  Pick<typeof articles.$inferInsert, "title" | "body" | "status" | "price">
+  Pick<
+    typeof articles.$inferInsert,
+    "title" | "body" | "status" | "price" | "coverImagePath"
+  >
 >;
 
 export async function getMyArticles() {
@@ -43,6 +46,7 @@ export async function getMyArticle(articleId: string) {
       body: articles.body,
       status: articles.status,
       price: articles.price,
+      coverImagePath: articles.coverImagePath,
     })
     .from(articles)
     .where(and(eq(articles.authorId, user.id), eq(articles.id, articleId)));

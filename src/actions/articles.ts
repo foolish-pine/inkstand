@@ -18,6 +18,7 @@ export type ArticleFormValues = {
   body: string;
   status: string;
   price: string;
+  coverImagePath: string;
 };
 
 export type ArticleFormState = {
@@ -28,6 +29,7 @@ export type ArticleFormState = {
     body?: string[];
     status?: string[];
     price?: string[];
+    coverImagePath?: string[];
   };
 };
 
@@ -40,6 +42,7 @@ export async function createArticle(
     body: getString(formData, "body"),
     status: getString(formData, "status"),
     price: getString(formData, "price"),
+    coverImagePath: getString(formData, "coverImagePath"),
   };
 
   const validated = articleFormSchema.safeParse(defaultValues);
@@ -50,13 +53,14 @@ export async function createArticle(
       ...z.flattenError(validated.error),
     };
 
-  const { title, body, status, price } = validated.data;
+  const { title, body, status, price, coverImagePath } = validated.data;
 
   await createMyArticle({
     title,
     body,
     status,
     price,
+    coverImagePath,
   });
 
   updateTag(latestArticlesTag);
@@ -73,6 +77,7 @@ export async function updateArticle(
     body: getString(formData, "body"),
     status: getString(formData, "status"),
     price: getString(formData, "price"),
+    coverImagePath: getString(formData, "coverImagePath"),
   };
 
   const validated = articleFormSchema.safeParse(defaultValues);
@@ -84,13 +89,14 @@ export async function updateArticle(
     };
 
   const articleId = getString(formData, "articleId");
-  const { title, body, status, price } = validated.data;
+  const { title, body, status, price, coverImagePath } = validated.data;
 
   const article = await updateMyArticle(articleId, {
     title,
     body,
     status,
     price,
+    coverImagePath,
   });
 
   if (!article) notFound();

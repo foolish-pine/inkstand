@@ -31,6 +31,17 @@ export const articleFormSchema = z
       .refine((n) => n <= 50000, {
         message: "50000円以下の価格を設定してください。",
       }),
+    coverImagePath: z
+      .union([
+        z.literal(""),
+        z
+          .string()
+          .regex(
+            /^[0-9a-f-]+\/covers\/[A-Za-z0-9_-]+\.(jpg|png|webp)$/,
+            "カバー画像を選び直してください。",
+          ),
+      ])
+      .transform((s) => (s === "" ? null : s)),
   })
   .refine(
     (val) =>
