@@ -1,12 +1,28 @@
 "use client";
 
-import { useActionState } from "react";
+import { nanoid } from "nanoid";
+import { useActionState, useState } from "react";
+import { CoverImageInput } from "./cover-image-input";
 import {
   type ArticleFormState,
   type ArticleFormValues,
 } from "@/actions/articles";
+import { getString } from "@/actions/form-data";
 import { TextField } from "@/components/text-field";
 import { TextareaField } from "@/components/textarea-field";
+import { createClient } from "@/lib/supabase/client";
+
+export type CoverImageState =
+  | {
+      file: File;
+      extension: string;
+      errorMessage: "";
+    }
+  | {
+      file: null;
+      extension: null;
+      errorMessage: string;
+    };
 
 export function ArticleForm({
   defaultValues,
@@ -25,7 +41,64 @@ export function ArticleForm({
     formErrors: [],
     fieldErrors: {},
   };
-  const [state, formAction, isPending] = useActionState(action, initialState);
+  const [coverImage, setCoverImage] = useState<CoverImageState>({
+    file: null,
+    extension: null,
+    errorMessage: "",
+  });
+
+  const [state, formAction, isPending] = useActionState(
+    async (
+      prevState: ArticleFormState,
+      formData: FormData,
+    ): Promise<ArticleFormState> => {
+      const defaultValues = {
+        title: getString(formData, "title"),
+        body: getString(formData, "body"),
+        status: getString(formData, "status"),
+        price: getString(formData, "price"),
+        coverImagePath: getString(formData, "coverImagePath"),
+      };
+
+      const { file, extension } = coverImage;
+
+      if (!file) return action(prevState, formData);
+
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user)
+        return {
+          defaultValues,
+          formErrors: [
+            "セッションが切断されました。もう一度ログインしてください。",
+          ],
+          fieldErrors: {},
+        };
+
+      const { data, error } = await supabase.storage
+        .from("images")
+        .upload(`${user.id}/covers/${nanoid()}.${extension}`, file);
+
+      if (error)
+        return {
+          defaultValues,
+          formErrors: [],
+          fieldErrors: {
+            coverImagePath: [
+              "カバー画像のアップロードに失敗しました。もう一度お試しください。",
+            ],
+          },
+        };
+
+      formData.set("coverImagePath", data.path);
+
+      return action(prevState, formData);
+    },
+    initialState,
+  );
 
   return (
     <form action={formAction} className="mt-12 space-y-10">
@@ -95,6 +168,16 @@ export function ArticleForm({
         defaultValue={state.defaultValues.price}
         hint="0円にすると無料記事になります。また、有料記事の最低価格は50円、最高価格は50000円です。"
         errors={state.fieldErrors.price}
+      />
+      <CoverImageInput
+        coverImage={coverImage}
+        setCoverImage={setCoverImage}
+        errors={state.fieldErrors.coverImagePath}
+      />
+      <input
+        type="hidden"
+        name="coverImagePath"
+        defaultValue={state.defaultValues.coverImagePath}
       />
       <button
         type="submit"
