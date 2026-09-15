@@ -127,6 +127,28 @@ npm run test:e2e
 `npx supabase db reset` ではなく、`auth.users` を消してください（スキーマの持ち主は
 Drizzle なので、Supabase 側のリセットはマイグレーションを巻き戻します）。
 
+## 鍵を漏らさないために
+
+`.env.local` は git 管理外です。コミットされるのは `.env.example`（値は空）と
+`.env.test`（ローカル Supabase の既定値のみ）だけです。
+
+さらに、コミット時に鍵が混ざるのを止めるフックを置いてあります。
+
+- `.githooks/pre-commit` が、**これから足す行**を検査します
+- 有効化は `npm install` が行います（`prepare` で `core.hooksPath` を設定）
+- 手で有効にするなら `git config core.hooksPath .githooks`
+
+止めているのは Stripe / Resend / Supabase のサーバー専用キー、JWT、秘密鍵ファイル、
+パスワード付きのリモート DB 接続文字列、そして `.env.example` と `.env.test` 以外の
+`.env` ファイルです。
+
+**過去のコミットは対象外です。** 一度入れてしまったものはフックでは消えません。
+入れてしまったら、まず**その鍵を無効化して作り直す**のが先です（履歴から消しても、
+それまでに取得された可能性は残るため）。
+
+アプリのコードから環境変数を読むときは `requireEnv()` を通してください。値が無いと
+起動時に落ちるので、本番でリクエストを待たずに気づけます。
+
 ## ディレクトリ構成
 
 ```

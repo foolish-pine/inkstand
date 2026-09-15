@@ -108,13 +108,13 @@ Next.js（App Router）の学習用プロジェクトです。note のような�
 - 認証メール（確認リンク等）は Supabase Auth が送信する。開発中は Supabase 標準のメール送信（レート制限あり）でよい。本番相当にする場合は Resend の SMTP を Supabase に設定する（設定作業なので Claude が具体的に案内してよい）。**Resend の API を直接使うのはレシートメール（ステップ7）**
 - **このプロジェクトの Supabase は「Confirm email」をオフにしている。** 標準のメール送信はチームメンバー宛てにしか届かず、1 時間 2 通の制限があるため、複数ユーザーでの動作確認ができないのが理由。`signUp` は登録した時点でセッションを返す。この設定はダッシュボードにしか存在せずリポジトリには現れないので、環境を再現するときは必ず確認する
 - Stripe は**最後までテストモードのまま**進める。本番モードへの切り替えはこのプロジェクトのスコープ外
-- **このプロジェクトが使う Stripe のアカウントは `acct_1UB3jaEISofPK8h5`（サンドボックス `inkstandサンドボックス`）。** `.env.local` の `STRIPE_SECRET_KEY` はここのもの。同じ名前で紛らわしいが、`inkstand`（`acct_1UB3jTCZguNSjYMb`）は**アカウントそのもの**で、その test mode は使わない（削除はできない。ビジネス確認が必要なためサンドボックスの改名も塞がっている）
+- **このプロジェクトが使う Stripe のアカウントは、`inkstand` アカウント配下のサンドボックス（表示名 `inkstandサンドボックス`）。** `.env.local` の `STRIPE_SECRET_KEY` はここのもの。同じ名前で紛らわしいが、`inkstand` **アカウントそのもの**の test mode は使わない（削除はできない。ビジネス確認が必要なためサンドボックスの改名も塞がっている）。**アカウント ID はリポジトリに書かない。** `stripe login list` と下記のコマンドで実際の値を確認する
 - **アカウントの test mode と、配下のサンドボックスは別物。** データも API キーも Webhook の署名シークレットも完全に別で、`stripe login list` は両方を `sandbox` と表示する。**アプリのキーと `stripe listen` のコンテキストは別々に設定され、ずれても何も警告が出ない**
 - **Webhook が届かないときは、まずアカウントの一致を確認する**（2026-09-06 に 2 つのサンドボックスを取り違えて詰まった）。症状は「決済は成功し `/success` に戻るのに、`stripe listen` に何も出ない」。エラーもログも出ないので、Stripe 側を見に行かないと気づけない
   ```
   stripe login list                                     # ● active がどれか
   node --env-file=.env.local -e "const S=require('stripe'); new S(process.env.STRIPE_SECRET_KEY).accounts.retrieve().then(a=>console.log(a.id))"
-  stripe switch context acct_1UB3jaEISofPK8h5           # ずれていたら合わせる
+  stripe switch context acct_xxxxxxxxxxxx                # ずれていたら、上で出た ID に合わせる
   ```
   切り替えたら `stripe listen` を起動し直し、**新しく表示される `whsec_`** を `.env.local` に入れて dev サーバーを再起動する（署名シークレットはアカウントごとに違う）。同じ確認はステップ12 の本番 Webhook 登録でも要る
 

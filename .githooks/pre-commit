@@ -1,0 +1,80 @@
+#!/bin/sh
+# コミットに鍵や秘密が混ざるのを止める。
+#
+# 有効にするのは npm install（package.json の prepare）。手で有効にするなら:
+#   git config core.hooksPath .githooks
+#
+# 見ているのは「これから足す行」だけ。既存の行は対象外なので、
+# 過去のコミットに入ってしまったものはここでは捕まらない。
+#
+# どうしても通したいときは git commit --no-verify だが、
+# 止められた理由を確認してからにすること。
+#
+# set -e は使わない。grep が「一致なし」で 1 を返すため、
+# 検査のたびにスクリプトごと終了してしまう（無言でコミットが止まる）。
+
+fail=0
+
+header() {
+  if [ "$fail" -eq 0 ]; then
+    echo "コミットを中止しました。次のものが含まれています。"
+    echo
+  fi
+  fail=1
+}
+
+report() {
+  header
+  echo "  [$1]"
+  # 値そのものは出さない。場所だけ示す。
+  echo "$2" | sed -E 's/^\+//' | cut -c1-40 | sed 's/^/     /'
+  echo
+}
+
+added=$(git diff --cached --unified=0 --diff-filter=ACM | grep '^+' | grep -v '^+++')
+
+check() {
+  hits=$(printf '%s\n' "$added" | grep -E "$2")
+  if [ -n "$hits" ]; then
+    report "$1" "$hits"
+  fi
+}
+
+# Stripe。ダミー（sk_test_dummy / whsec_dummy）は長さで除外される
+check "Stripe の秘密鍵" 'sk_(live|test)_[A-Za-z0-9]{20,}'
+check "Stripe の制限付きキー" 'rk_(live|test)_[A-Za-z0-9]{20,}'
+check "Stripe の Webhook 署名" 'whsec_[A-Za-z0-9]{20,}'
+# Resend（re_ で始まり、途中にアンダースコアを挟む形）
+check "Resend の API キー" 're_[A-Za-z0-9]{8,}_[A-Za-z0-9]{12,}'
+# Supabase のサーバー専用キー。publishable は公開前提なので対象にしない
+check "Supabase の secret キー" 'sb_secret_[A-Za-z0-9_-]{16,}'
+# JWT は 3 つの部分からなる。package-lock.json の integrity と区別するため
+check "JWT" 'eyJ[A-Za-z0-9_-]{16,}\.[A-Za-z0-9_-]{16,}\.'
+check "秘密鍵ファイルの中身" 'BEGIN [A-Z]+ PRIVATE KEY'
+check "Supabase プロジェクトの URL" 'https://[a-z]{20}\.supabase\.co'
+
+# パスワード付きの接続文字列。ローカルの既定値は除く
+remote_db=$(printf '%s\n' "$added" \
+  | grep -E 'postgres(ql)?://[^:@/]+:[^@/]+@' \
+  | grep -vE '@(127\.0\.0\.1|localhost)')
+if [ -n "$remote_db" ]; then
+  report "リモート DB の接続文字列" "$remote_db"
+fi
+
+# .env は .env.example と .env.test だけ許す
+env_files=$(git diff --cached --name-only --diff-filter=ACM \
+  | grep -E '(^|/)\.env' \
+  | grep -vE '(^|/)\.env\.(example|test)$')
+if [ -n "$env_files" ]; then
+  header
+  echo "  [追跡してはいけない .env ファイル]"
+  echo "$env_files" | sed 's/^/     /'
+  echo
+fi
+
+if [ "$fail" -ne 0 ]; then
+  echo "値を .env.local に移し、コードからは requireEnv() で読んでください。"
+  exit 1
+fi
+
+exit 0
