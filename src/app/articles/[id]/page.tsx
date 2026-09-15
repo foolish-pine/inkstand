@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { type ReactNode, Suspense } from "react";
@@ -8,6 +9,7 @@ import { canPurchase } from "./can-purchase";
 import { buildExcerpt } from "./excerpt";
 import { createCheckout } from "@/actions/checkout";
 import { SiteHeader } from "@/components/site-header";
+import { coverImageUrl } from "@/lib/cover-image-url";
 import { getCurrentUser } from "@/lib/current-user";
 import { hasPurchasedArticle } from "@/lib/dal/my-purchases";
 import { getPublishedArticle } from "@/lib/dal/published-articles";
@@ -23,6 +25,7 @@ async function ArticleContent({
 
   const isFree = article.price === 0;
   const excerpt = buildExcerpt(article.body);
+  const imageUrl = coverImageUrl(article.coverImagePath);
 
   return (
     <>
@@ -36,6 +39,21 @@ async function ArticleContent({
         >
           {formatDate(article.publishedAt)}
         </time>
+      )}
+      {/* 画像の実寸は保存していないので、枠の比率を固定して object-cover で
+          埋める。こうすると、どんな寸法の画像が来ても読み込みの前後で
+          高さが変わらない。 */}
+      {imageUrl && (
+        <div className="border-rule relative mt-10 aspect-16/9 w-full overflow-hidden border">
+          <Image
+            src={imageUrl}
+            alt=""
+            fill
+            sizes="(max-width: 672px) 100vw, 672px"
+            priority
+            className="object-cover"
+          />
+        </div>
       )}
       <Suspense fallback={<ArticleExcerptBody excerptText={excerpt.text} />}>
         <ArticleBody

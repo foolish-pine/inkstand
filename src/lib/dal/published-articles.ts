@@ -14,6 +14,7 @@ export async function getLatestArticles() {
       title: articles.title,
       price: articles.price,
       publishedAt: articles.publishedAt,
+      coverImagePath: articles.coverImagePath,
     })
     .from(articles)
     .where(eq(articles.status, "published"))
@@ -34,6 +35,7 @@ export async function getPublishedArticle(id: string) {
       status: articles.status,
       price: articles.price,
       publishedAt: articles.publishedAt,
+      coverImagePath: articles.coverImagePath,
     })
     .from(articles)
     .where(and(eq(articles.id, id), eq(articles.status, "published")));
