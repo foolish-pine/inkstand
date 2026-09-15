@@ -14,6 +14,7 @@
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
     "test:db": "vitest run --config vitest.db.config.mts",
+    "pretest:e2e": "lsof -ti tcp:3200 | xargs kill 2>/dev/null || true",
     "test:e2e": "playwright test",
     "db:migrate:test": "ENV_FILE=.env.test drizzle-kit migrate"
   },
