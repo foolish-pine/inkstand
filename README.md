@@ -56,6 +56,7 @@ http://localhost:3000 を開きます。
 | `typecheck` | `tsc --noEmit`                                              |
 | `test`      | 単体テスト（Vitest）。DB に接続しない                       |
 | `test:db`   | DB に接続するテスト。ローカルの Supabase が必要             |
+| `test:e2e`  | E2E テスト（Playwright）。ローカルの Supabase が必要        |
 | `db:generate` | スキーマの差分からマイグレーションを生成                  |
 | `db:migrate`  | `.env.local` の DB にマイグレーションを適用               |
 | `db:migrate:test` | テスト用 DB にマイグレーションを適用                  |
@@ -103,6 +104,29 @@ from pg_policies where schemaname = 'storage' and tablename = 'objects';
 ダッシュボードで作成します。この設定はリポジトリには現れないので、環境を作り直すときは
 ダッシュボードを確認してください。
 
+## E2E テスト
+
+主要な画面の流れを、実際のブラウザで通します。**ローカルの Supabase を使います。**
+本番のプロジェクトを使うと、実行のたびにユーザーと記事が増え続けるためです。
+
+```bash
+npx supabase start   # 起動していなければ
+npm run test:e2e
+```
+
+- テストは `e2e/` に置きます（`*.spec.ts`）
+- 実行のたびに本番ビルドを作り、`http://127.0.0.1:3200` で起動します。`npm run dev` を
+  止める必要はありません（ポートが違います）
+- 接続先やダミーの鍵は `playwright.config.ts` の `serverEnv` にまとめてあります。
+  ここに書いた値はサーバーのプロセスに直接渡り、`.env.local` より優先されます
+- マイグレーションは実行前に自動で流れます（`playwright.global-setup.ts`）
+- ブラウザの初回ダウンロードが必要です: `npx playwright install chromium`
+
+**E2E が作るデータは消していません。** テストごとに一意なメールアドレスを使い、
+他のテストのデータに依存しない形で書きます。溜まったデータを捨てたいときは
+`npx supabase db reset` ではなく、`auth.users` を消してください（スキーマの持ち主は
+Drizzle なので、Supabase 側のリセットはマイグレーションを巻き戻します）。
+
 ## ディレクトリ構成
 
 ```
@@ -118,6 +142,7 @@ src/
   test/             # テストの基盤（フィクスチャ・スタブ）
   types/            # 型定義
 public/             # 静的ファイル
+e2e/                # E2E テスト（Playwright）
 supabase/
   policies/         # Storage のポリシー（db:migrate では適用されない）
 ```
@@ -144,7 +169,7 @@ DB を直接触ることは ESLint で禁止しています。DAL は「そこ�
 | 日付             | Day.js（`utc` / `timezone` プラグイン）  | 1.11.23    |
 | Lint / Format    | ESLint + Prettier                        | 9.39.5 / 3.9.6 |
 | 単体テスト       | Vitest + Testing Library                 | 4.1.11 / 16.3.2 |
-| E2E              | Playwright                               | 未導入     |
+| E2E              | Playwright                               | 1.63.0     |
 | CI               | GitHub Actions                           | 未導入     |
 | ホスティング     | Vercel                                   | 未導入     |
 

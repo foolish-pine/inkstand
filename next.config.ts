@@ -9,13 +9,18 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
 if (!supabaseUrl) throw new Error("NEXT_PUBLIC_SUPABASE_URL is not defined.");
 
+// protocol と port も URL から取る。E2E はローカルの Supabase
+// （http://127.0.0.1:54321）を見るので、https 固定だと画像が出ない。
+const { protocol, hostname, port } = new URL(supabaseUrl);
+
 const nextConfig: NextConfig = {
   cacheComponents: true,
   images: {
     remotePatterns: [
       {
-        protocol: "https",
-        hostname: new URL(supabaseUrl).hostname,
+        protocol: protocol === "http:" ? "http" : "https",
+        hostname,
+        port,
         pathname: "/storage/v1/object/public/images/**",
       },
     ],
