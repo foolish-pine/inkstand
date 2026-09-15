@@ -26,6 +26,7 @@ export default defineConfig({
     env: {
       APP_URL: "http://example.com",
       DATABASE_URL: "postgres://unused:unused@127.0.0.1:1/unused",
+      NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
       RESEND_API_KEY: "re_dummy",
       STRIPE_SECRET_KEY: "sk_test_dummy",
       STRIPE_WEBHOOK_SECRET: "whsec_dummy",
