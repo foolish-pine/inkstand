@@ -10,8 +10,10 @@ import {
   ArticleHasPurchasesError,
   createMyArticle,
   deleteMyArticle,
+  getMyArticle,
   updateMyArticle,
 } from "@/lib/dal/my-articles";
+import { createClient } from "@/lib/supabase/server";
 
 export type ArticleFormValues = {
   title: string;
@@ -89,6 +91,11 @@ export async function updateArticle(
     };
 
   const articleId = getString(formData, "articleId");
+
+  const currentArticle = await getMyArticle(articleId);
+
+  if (!currentArticle) notFound();
+
   const { title, body, status, price, coverImagePath } = validated.data;
 
   const article = await updateMyArticle(articleId, {
@@ -100,6 +107,20 @@ export async function updateArticle(
   });
 
   if (!article) notFound();
+
+  const { coverImagePath: currentCoverImagePath } = currentArticle;
+
+  if (currentCoverImagePath && currentCoverImagePath !== coverImagePath) {
+    const supabase = await createClient();
+    const { error } = await supabase.storage
+      .from("images")
+      .remove([currentCoverImagePath]);
+
+    if (error)
+      console.error(
+        `Article ID: ${articleId}, Image Path: ${currentCoverImagePath}, ${error.message}`,
+      );
+  }
 
   updateTag(latestArticlesTag);
   updateTag(articleTag(article.id));
