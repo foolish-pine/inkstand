@@ -10,6 +10,7 @@ import {
 import { getString } from "@/actions/form-data";
 import { TextField } from "@/components/text-field";
 import { TextareaField } from "@/components/textarea-field";
+import { coverImageUrl } from "@/lib/cover-image-url";
 import { createClient } from "@/lib/supabase/client";
 
 export type CoverImageState =
@@ -172,6 +173,7 @@ export function ArticleForm({
       <CoverImageInput
         coverImage={coverImage}
         setCoverImage={setCoverImage}
+        currentImageUrl={coverImageUrl(state.defaultValues.coverImagePath)}
         errors={state.fieldErrors.coverImagePath}
       />
       <input
