@@ -27,12 +27,17 @@ const serverEnv = {
 export default defineConfig({
   testDir: "./e2e",
   globalSetup: "./playwright.global-setup.ts",
-  // テスト間に依存を作らないため、既定で並列に走らせる。
-  fullyParallel: true,
+  // テスト間に依存は作らない（各テストが自分のユーザーと記事を作る）が、
+  // 同時には走らせない。トップの一覧は use cache で全テストに共有されており、
+  // 「A が記事を作って updateTag でパージ → その前に始まった B の生成結果が
+  // 後から入る」という噛み合わせで、作ったはずの記事が一覧に出ないことがある
+  // （2026-09-17 に実測。DB には入っており、しばらく後に見ると出ている）。
+  // 依存が無いことと、同時に走れることは別。
+  fullyParallel: false,
+  workers: 1,
   // .only の消し忘れを CI で落とす
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
   reporter: process.env.CI ? [["list"], ["html", { open: "never" }]] : "list",
   use: {
     baseURL,
