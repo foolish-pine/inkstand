@@ -92,6 +92,11 @@ export async function updateArticle(
 
   const articleId = getString(formData, "articleId");
 
+  // 画像の差し替えで古いパスが要るので、更新の前に引いている。getMyArticle は
+  // where に authorId を持つため、ここが認可の 1 段目にもなっている（他人の記事 ID
+  // では updateMyArticle に届かず 404）。認可の本体は updateMyArticle の where で、
+  // そちらを固定しているのは my-articles.db.test.ts のほう。E2E は関門が 2 つある
+  // ぶん、片方だけ壊しても落ちない。
   const currentArticle = await getMyArticle(articleId);
 
   if (!currentArticle) notFound();
